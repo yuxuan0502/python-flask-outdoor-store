@@ -17,4 +17,6 @@ itsdangerous>=2.1.0
 MarkupSafe>=2.1.0
 click>=8.1.0
 blinker>=1.6.0
-gunicorn==21.2.0
+
+# Production server (not needed for Vercel)
+# gunicorn==21.2.0
