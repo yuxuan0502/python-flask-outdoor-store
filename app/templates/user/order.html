@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的订单 - 户外商品商城</title>
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='icons/favicon.svg') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='navbar.css') }}">
+    <style>
+        /* 订单页面特有样式 */
+        .orders-container {
+            padding: 40px 0;
+            min-height: 500px;
+        }
+
+        .orders-header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+        }
+
+        .orders-title {
+            font-size: 28px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .orders-stats {
+            color: #666;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        .order-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            padding: 0;
+            list-style: none;
+        }
+
+        .order-tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            color: #666;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .order-tab.active {
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .order-tab.active:after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #667eea;
+        }
+
+        .order-tab:hover {
+            color: #667eea;
+        }
+
+        .order-list {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .order-card {
+            transition: all 0.3s;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .order-id {
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .order-status {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-paid {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .status-cancelled {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+
+        .status-pending {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .order-items {
+            padding: 20px;
+        }
+
+        .order-item {
+            display: grid;
+            grid-template-columns: 80px 2fr 1fr 1fr;
+            gap: 20px;
+            align-items: center;
+            padding: 15px 0;
+        }
+
+        .order-item-image {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .order-item-info {
+            padding-right: 20px;
+        }
+
+        .order-item-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 5px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .order-item-brand {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .order-item-quantity {
+            text-align: center;
+            color: #666;
+        }
+
+        .order-item-price {
+            text-align: right;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .order-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: #fafafa;
+        }
+
+        .order-total {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .order-total span {
+            color: #ff6b6b;
+            font-size: 24px;
+        }
+
+        .order-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .action-btn.view {
+            background: #667eea;
+            color: white;
+        }
+
+        .action-btn.view:hover {
+            background: #5a67d8;
+        }
+
+        .action-btn.rebuy {
+            background: #4caf50;
+            color: white;
+        }
+
+        .action-btn.rebuy:hover {
+            background: #43a047;
+        }
+
+        .action-btn.cancel {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .action-btn.cancel:hover {
+            background: #ff4757;
+        }
+
+        .action-btn.pay {
+            background: #ff9800;
+            color: white;
+        }
+
+        .action-btn.pay:hover {
+            background: #f57c00;
+        }
+
+        .order-empty {
+            text-align: center;
+            padding: 80px 20px;
+            color: #666;
+        }
+
+        .order-empty-icon {
+            font-size: 60px;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+
+        .order-empty h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .order-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .order-tabs {
+                flex-wrap: wrap;
+            }
+
+            .order-item {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 15px;
+            }
+
+            .order-item-image {
+                margin: 0 auto;
+            }
+
+            .order-footer {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .order-actions {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- 导航栏 -->
+<header class="header">
+    <div class="w">
+        <a class="logo" href="{{ url_for('user.index') }}">
+            <span class="logo-text">Store</span>
+        </a>
+        <nav class="nav">
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('user.index') }}">首页</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('user.car') }}">购物车</a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="{{ url_for('user.personal_center') }}">个人中心</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('user.about') }}">全部商品</a>
+                </li>
+                <li class="nav-item search-item">
+                    <form class="search-form" action="{{ url_for('user.search') }}" method="GET">
+                        <input class="search-input-sm" type="text" name="keyword" placeholder="搜索商品..." value="{{ request.args.get('keyword', '') }}">
+                        <button class="search-btn-sm" type="submit">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </button>
+                    </form>
+                </li>
+                <li class="nav-item">
+                    {% if user %}
+                    <div class="user-info">
+                        <span class="user-name">欢迎，{{ user.name }}</span>
+                        <a href="{{ url_for('user.logout') }}" class="logout-btn">退出</a>
+                    </div>
+                    {% endif %}
+                </li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<!-- 订单页面内容 -->
+<div class="container orders-container">
+    <div class="orders-header">
+        <h1 class="orders-title">我的订单</h1>
+        <div class="orders-stats">共 {{ products|length if products else 0 }} 个订单</div>
+    </div>
+
+    <!-- 订单标签页 - 基于实际数据库字段 is_pay 和 is_cancel -->
+    <ul class="order-tabs">
+        <li>
+            <button class="order-tab active" onclick="showTab('all')">全部订单</button>
+        </li>
+        <li>
+            <button class="order-tab" onclick="showTab('paid')">已支付</button>
+        </li>
+        <li>
+            <button class="order-tab" onclick="showTab('pending')">待支付</button>
+        </li>
+        <li>
+            <button class="order-tab" onclick="showTab('cancelled')">已取消</button>
+        </li>
+    </ul>
+
+    {% if products %}
+    <div class="order-list">
+        {% for order_item in products %}
+        <div class="order-card" data-status="{% if order_item.is_cancel == 1 %}cancelled{% elif order_item.is_pay == 1 %}paid{% else %}pending{% endif %}">
+            <div class="order-header">
+                <span class="order-id">订单号：{{ order_item.item_id }}</span>
+                {% if order_item.is_cancel == 1 %}
+                    <span class="order-status status-cancelled">已取消</span>
+                {% elif order_item.is_pay == 0 %}
+                    <span class="order-status status-pending">待支付</span>
+                {% elif order_item.is_pay == 1 %}
+                    <span class="order-status status-paid">已支付</span>
+                {% endif %}
+            </div>
+
+            <div class="order-items">
+                <div class="order-item">
+                    <img src="{{ order_item.product.photo }}" alt="{{ order_item.product.name }}" class="order-item-image">
+
+                    <div class="order-item-info">
+                        <h3 class="order-item-name">{{ order_item.product.name }}</h3>
+                        <div class="order-item-brand">品牌：{{ order_item.product.derive }}</div>
+                    </div>
+
+                    <div class="order-item-quantity">
+                        ×{{ order_item.number }}
+                    </div>
+
+                    <div class="order-item-price">
+                        ¥{{ (order_item.number * order_item.product.price)|round(2) }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="order-footer">
+                <div class="order-total">
+                    订单金额：<span>¥{{ (order_item.number * order_item.product.price)|round(2) }}</span>
+                </div>
+
+                <div class="order-actions">
+                    {% if order_item.is_pay == 1 %}
+                        <a href="{{ url_for('user.add_car', id=order_item.product.id) }}" class="action-btn rebuy">再次购买</a>
+                    {% elif order_item.is_cancel == 0 and order_item.is_pay == 0 %}
+                        <a href="{{ url_for('user.cancel_order', item_id=order_item.item_id) }}" class="action-btn cancel" onclick="return confirm('确定要取消这个订单吗？')">取消订单</a>
+                        <a href="{{ url_for('user.car') }}" class="action-btn pay">去支付</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- 空订单 -->
+    <div class="order-empty">
+        <div class="order-empty-icon">📦</div>
+        <h3>暂无订单</h3>
+        <p style="color: #999; margin-bottom: 30px; max-width: 400px; margin: 0 auto 30px;">
+            您还没有任何订单记录，快去选购心仪的商品吧！
+        </p>
+        <a href="{{ url_for('user.index') }}" class="btn" style="display: inline-block;">
+            去首页逛逛
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- 页脚 -->
+<footer class="footer">
+    <div class="footer-content">
+        <div class="footer-section">
+            <h3>关于我们</h3>
+            <p style="color: #ddd; line-height: 1.8; margin-top: 15px;">
+                我们致力于为户外爱好者提供最优质的装备和服务，让您的户外之旅更加精彩。
+            </p>
+        </div>
+
+        <div class="footer-section">
+            <h3>购物指南</h3>
+            <ul class="footer-links">
+                <li><a href="{{ url_for('user.index') }}">首页</a></li>
+                <li><a href="{{ url_for('user.about') }}">全部商品</a></li>
+                <li><a href="{{ url_for('user.car') }}">购物车</a></li>
+                <li><a href="{{ url_for('user.personal_center') }}">个人中心</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-section">
+            <h3>售后服务</h3>
+            <ul class="footer-links">
+                <li><a href="#">退换货政策</a></li>
+                <li><a href="#">售后保障</a></li>
+                <li><a href="#">投诉建议</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-section">
+            <h3>联系我们</h3>
+            <p style="color: #ddd; line-height: 1.8; margin-top: 15px;">
+                电话：400-123-4567<br>
+                邮箱：service@outdoor.com<br>
+                工作时间：9:00-18:00
+            </p>
+        </div>
+    </div>
+
+    <div class="copyright">
+        <p>户外商品商城 &copy; 2024 版权所有</p>
+    </div>
+</footer>
+
+<script>
+    // 切换订单标签页 - 基于实际数据库字段
+    function showTab(tab) {
+        // 更新标签页样式
+        document.querySelectorAll('.order-tab').forEach(button => {
+            button.classList.remove('active');
+        });
+        event.target.classList.add('active');
+
+        // 筛选订单
+        const orderCards = document.querySelectorAll('.order-card');
+        orderCards.forEach(card => {
+            if (tab === 'all') {
+                card.style.display = 'block';
+            } else {
+                const status = card.getAttribute('data-status');
+                if (status === tab) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            }
+        });
+    }
+</script>
+</body>
+</html>

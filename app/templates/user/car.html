@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>购物车 - 户外商品商城</title>
+    <link rel="icon" type="image/png" sizes="16x16" href="../../static/icons/favicon.svg">
+    <link rel="stylesheet" href="{{ url_for('static', filename='navbar.css') }}">
+    <style>
+        /* 购物车页面特有样式 */
+        .cart-container {
+            padding: 40px 0;
+            min-height: 500px;
+        }
+
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+        }
+
+        .cart-title {
+            font-size: 28px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .cart-stats {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .cart-items {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .cart-item {
+            display: grid;
+            grid-template-columns: 100px 2fr 1fr 1fr auto;
+            gap: 20px;
+            align-items: center;
+            padding: 25px;
+            transition: all 0.3s;
+        }
+
+        .cart-item:hover {
+            background: #f8f9fa;
+        }
+
+        .item-image {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .item-info {
+            padding-right: 20px;
+        }
+
+        .item-name {
+            font-size: 18px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .item-brand {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .item-price {
+            color: #ff6b6b;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .quantity-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+
+        .quantity-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .quantity-input {
+            width: 60px;
+            text-align: center;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .item-total {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .action-btn.delete {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .action-btn.delete:hover {
+            background: #ff4757;
+        }
+
+        .cart-empty {
+            text-align: center;
+            padding: 80px 20px;
+            color: #666;
+        }
+
+        .cart-empty-icon {
+            font-size: 60px;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+
+        .cart-empty h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .cart-summary {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-top: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+        }
+
+        .summary-row:last-child {
+            font-weight: bold;
+            font-size: 20px;
+            color: #333;
+        }
+
+        .summary-value {
+            font-weight: 500;
+        }
+
+        .summary-total {
+            color: #ff6b6b;
+        }
+
+        .checkout-section {
+            text-align: right;
+            margin-top: 30px;
+        }
+
+        .checkout-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 18px 40px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(245, 87, 108, 0.4);
+        }
+
+        .continue-shopping {
+            color: #667eea;
+            text-decoration: none;
+            margin-right: 20px;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+
+        .continue-shopping:hover {
+            color: #5a67d8;
+        }
+
+        /* 推荐商品 */
+        .recommendations {
+            margin-top: 60px;
+        }
+
+        .recommendations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .recommendation-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+
+        .recommendation-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        .recommendation-image {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+        }
+
+        .recommendation-info {
+            padding: 15px;
+        }
+
+        .recommendation-name {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .recommendation-card a,
+        .recommendation-card a:hover {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .recommendation-price {
+            color: #ff6b6b;
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .add-to-cart-small {
+            width: 100%;
+            padding: 8px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .add-to-cart-small:hover {
+            background: #5a67d8;
+        }
+
+        /* 付款确认弹窗样式 */
+        .payment-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 9999;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .payment-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .payment-modal-content {
+            background: white;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .payment-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px 30px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .payment-modal-header h2 {
+            font-size: 24px;
+            color: #333;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 32px;
+            color: #999;
+            cursor: pointer;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .close-modal:hover {
+            color: #333;
+            transform: rotate(90deg);
+        }
+
+        .payment-modal-body {
+            padding: 30px;
+        }
+
+        .payment-summary {
+            margin-bottom: 20px;
+        }
+
+        .payment-summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            font-size: 16px;
+            color: #666;
+        }
+
+        .payment-summary-row.total {
+            border-top: 2px solid #eee;
+            padding-top: 20px;
+            margin-top: 10px;
+            font-weight: 600;
+            font-size: 20px;
+            color: #333;
+        }
+
+        .payment-summary-row.total span:last-child {
+            color: #ff6b6b;
+            font-size: 28px;
+        }
+
+        .payment-tips {
+            background: #f0f4ff;
+            padding: 15px 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .payment-tips p {
+            margin: 0;
+            color: #667eea;
+            font-size: 14px;
+        }
+
+        .payment-modal-footer {
+            display: flex;
+            gap: 15px;
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-radius: 0 0 20px 20px;
+        }
+
+        .payment-btn {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .back-btn {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .back-btn:hover {
+            background: #d0d0d0;
+        }
+
+        .cancel-btn {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .cancel-btn:hover {
+            background: #ff4757;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+        }
+
+        .confirm-btn {
+            background: linear-gradient(135deg, #28b779 0%, #34d399 100%);
+            color: white;
+        }
+
+        .confirm-btn:hover {
+            background: linear-gradient(135deg, #20a069 0%, #28b779 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 183, 121, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .cart-item {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 15px;
+            }
+
+            .item-image {
+                margin: 0 auto;
+            }
+
+            .quantity-control {
+                justify-content: center;
+            }
+
+            .item-actions {
+                justify-content: center;
+            }
+
+            .checkout-section {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- 导航栏 -->
+<header class="header">
+    <div class="w">
+        <a class="logo" href="{{ url_for('user.index') }}">
+            <span class="logo-text">Store</span>
+        </a>
+        <nav class="nav">
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('user.index') }}">首页</a>
+                </li>
+                <li class="nav-item {% if request.endpoint == 'user.car' %}active{% endif %}">
+                    <a class="nav-link" href="{{ url_for('user.car') }}">购物车</a>
+                </li>
+                <li class="nav-item {% if request.endpoint == 'user.personal_center' %}active{% endif %}">
+                    <a class="nav-link" href="{{ url_for('user.personal_center') }}">个人中心</a>
+                </li>
+                <li class="nav-item {% if request.endpoint == 'user.about' %}active{% endif %}">
+                    <a class="nav-link" href="{{ url_for('user.about') }}">全部商品</a>
+                </li>
+                <li class="nav-item search-item">
+                    <form class="search-form" action="{{ url_for('user.search') }}" method="GET">
+                        <input class="search-input-sm" type="text" name="keyword" placeholder="搜索商品..." value="{{ request.args.get('keyword', '') }}">
+                        <button class="search-btn-sm" type="submit">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </button>
+                    </form>
+                </li>
+                <li class="nav-item">
+                    {% if user %}
+                    <div class="user-info">
+                        <span class="user-name">欢迎，{{ user.name }}</span>
+                        <a href="{{ url_for('user.logout') }}" class="logout-btn">退出</a>
+                    </div>
+                    {% endif %}
+                </li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<!-- 购物车内容 -->
+<div class="w cart-container">
+    <div class="page-header">
+        <h1 class="page-title">我的购物车</h1>
+        {% if products %}
+        <div class="page-subtitle">共 {{ products|length }} 件商品</div>
+        {% endif %}
+    </div>
+
+    {% if products %}
+    <div class="cart-items">
+        {% for cart_item in products %}
+        <div class="cart-item" data-id="{{ cart_item.item_id }}">
+            <!-- 商品图片 -->
+            <img src="{{ cart_item.product.photo }}" alt="{{ cart_item.product.name }}" class="item-image">
+
+            <!-- 商品信息 -->
+            <div class="item-info">
+                <h3 class="item-name">{{ cart_item.product.name }}</h3>
+                <div class="item-brand">品牌：{{ cart_item.product.derive }}</div>
+                <div class="item-price">¥{{ cart_item.product.price }}</div>
+            </div>
+
+            <!-- 数量控制 -->
+            <div class="quantity-control">
+                <button class="quantity-btn decrease" data-id="{{ cart_item.item_id }}">-</button>
+                <input type="number" class="quantity-input" value="{{ cart_item.number }}" min="1" max="99" data-id="{{ cart_item.item_id }}">
+                <button class="quantity-btn increase" data-id="{{ cart_item.item_id }}">+</button>
+            </div>
+
+            <!-- 小计 -->
+            <div class="item-total" id="total-{{ cart_item.item_id }}"
+                 data-price="{{ cart_item.product.price }}"
+                 data-quantity="{{ cart_item.number }}">
+                ¥{{ (cart_item.number * cart_item.product.price)|round(2) }}
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="item-actions">
+                <button class="action-btn delete" data-id="{{ cart_item.item_id }}">删除</button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- 购物车总结 -->
+    <div class="cart-summary">
+        <div class="summary-row">
+            <span>商品总价：</span>
+            <span class="summary-value" id="subtotal">¥{{ total_price }}</span>
+        </div>
+        <div class="summary-row">
+            <span>运费：</span>
+            <span class="summary-value">¥0.00</span>
+        </div>
+        <div class="summary-row">
+            <span>优惠券：</span>
+            <span class="summary-value">-¥0.00</span>
+        </div>
+        <div class="summary-row">
+            <span>实付金额：</span>
+            <span class="summary-value summary-total" id="grand-total">¥{{ total_price }}</span>
+        </div>
+    </div>
+
+    <!-- 结算按钮 -->
+    <div class="checkout-section">
+        <a href="{{ url_for('user.index') }}" class="continue-shopping">继续购物</a>
+        <button class="checkout-btn" onclick="showPaymentModal()">
+            <span>去结算</span>
+            <span id="checkout-total">¥{{ total_price }}</span>
+        </button>
+    </div>
+
+    <!-- 付款确认弹窗 -->
+    <div id="payment-modal" class="payment-modal">
+        <div class="payment-modal-content">
+            <div class="payment-modal-header">
+                <h2>确认付款</h2>
+                <button class="close-modal" onclick="closePaymentModal()">&times;</button>
+            </div>
+
+            <div class="payment-modal-body">
+                <div class="payment-summary">
+                    <div class="payment-summary-row">
+                        <span>商品总价：</span>
+                        <span id="modal-subtotal">¥{{ total_price }}</span>
+                    </div>
+                    <div class="payment-summary-row">
+                        <span>运费：</span>
+                        <span>¥0.00</span>
+                    </div>
+                    <div class="payment-summary-row total">
+                        <span>应付金额：</span>
+                        <span id="modal-total">¥{{ total_price }}</span>
+                    </div>
+                </div>
+
+                <div class="payment-tips">
+                    <p>💡 请确认您的订单信息</p>
+                </div>
+            </div>
+
+            <div class="payment-modal-footer">
+                <button class="payment-btn back-btn" onclick="closePaymentModal()">返回</button>
+                <button class="payment-btn cancel-btn" onclick="cancelPayment()">取消付款</button>
+                <button class="payment-btn confirm-btn" onclick="confirmPayment()">确认付款</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== 付款相关函数 ==========
+        // 使用立即执行函数确保函数定义
+        (function() {
+            // 显示付款确认弹窗
+            window.showPaymentModal = function() {
+                console.log('showPaymentModal called');
+                const modal = document.getElementById('payment-modal');
+
+                if (!modal) {
+                    console.error('payment-modal element not found!');
+                    alert('弹窗元素未找到，请刷新页面重试');
+                    return false;
+                }
+
+                const modalSubtotal = document.getElementById('modal-subtotal');
+                const modalTotal = document.getElementById('modal-total');
+                const grandTotal = document.getElementById('grand-total');
+
+                if (!grandTotal) {
+                    console.error('grand-total element not found!');
+                    alert('价格元素未找到，请刷新页面重试');
+                    return false;
+                }
+
+                const currentTotal = grandTotal.textContent;
+
+                // 更新弹窗中的价格
+                if (modalSubtotal) modalSubtotal.textContent = currentTotal;
+                if (modalTotal) modalTotal.textContent = currentTotal;
+
+                // 显示弹窗
+                modal.classList.add('active');
+                console.log('Modal displayed successfully');
+                return false;
+            };
+
+            // 关闭付款确认弹窗
+            window.closePaymentModal = function() {
+                const modal = document.getElementById('payment-modal');
+                if (modal) {
+                    modal.classList.remove('active');
+                }
+                return false;
+            };
+
+            // 取消付款
+            window.cancelPayment = function() {
+                if (confirm('确定要取消付款吗？购物车中的商品将保存为已取消订单。')) {
+                    fetch('/create_order?status=cancelled', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            closePaymentModal();
+                            alert('订单已取消，已保存到您的订单中');
+                            window.location.href = '/personal_center';
+                        } else {
+                            alert(data.message || '操作失败');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('取消付款失败:', error);
+                        alert('操作失败，请稍后重试');
+                    });
+                }
+                return false;
+            };
+
+            // 确认付款
+            window.confirmPayment = function() {
+                const confirmBtn = document.querySelector('.confirm-btn');
+                const originalText = confirmBtn.textContent;
+                confirmBtn.textContent = '处理中...';
+                confirmBtn.disabled = true;
+
+                fetch('/create_order?status=paid', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        closePaymentModal();
+                        alert('付款成功！感谢您的购买');
+                        window.location.href = '/personal_center';
+                    } else {
+                        alert(data.message || '付款失败');
+                        confirmBtn.textContent = originalText;
+                        confirmBtn.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('付款失败:', error);
+                    alert('付款失败，请稍后重试');
+                    confirmBtn.textContent = originalText;
+                    confirmBtn.disabled = false;
+                });
+                return false;
+            };
+
+            console.log('Payment functions loaded successfully');
+        })();
+    </script>
+
+    {% else %}
+    <!-- 空购物车 -->
+    <div class="cart-empty">
+        <div class="cart-empty-icon">🛒</div>
+        <h3>购物车空空如也</h3>
+        <p style="color: #999; margin-bottom: 30px; max-width: 400px; margin: 0 auto 30px;">
+            您还没有添加任何商品到购物车，快去挑选心仪的商品吧！
+        </p>
+        <a href="{{ url_for('user.index') }}" class="btn" style="display: inline-block;">
+            去首页逛逛
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- 在 car.html 中找到推荐商品部分，修改为： -->
+{% if products %}
+<!-- 推荐商品 -->
+<div class="recommendations">
+    <h2 class="section-title" style="font-size: 24px; border-bottom: none; text-align: center; margin-bottom: 30px;">
+        猜你喜欢
+    </h2>
+    <div class="recommendations-grid">
+        {% if random_products %}
+            {% for rec_product in random_products %}
+            <div class="recommendation-card">
+                <a href="{{ url_for('user.detail', id=rec_product.id) }}">
+                    <img src="{{ rec_product.photo }}" alt="{{ rec_product.name }}" class="recommendation-image">
+                    <div class="recommendation-info">
+                        <h3 class="recommendation-name">{{ rec_product.name }}</h3>
+                        <div class="recommendation-price">¥{{ rec_product.price }}</div>
+                        <div style="font-size: 12px; color: #999; margin-bottom: 12px;">品牌：{{ rec_product.derive }}</div>
+                        <button class="add-to-cart-small" data-id="{{ rec_product.id }}">加入购物车</button>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        {% else %}
+            <!-- 如果没有推荐商品，显示提示信息 -->
+            <div style="text-align: center; grid-column: 1 / -1; padding: 40px; color: #999;">
+                暂无相关推荐商品
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+</div>
+
+<!-- 页脚 -->
+<footer class="footer">
+    <div class="footer-content">
+        <div class="footer-section">
+            <h3>关于我们</h3>
+            <p style="color: #ddd; line-height: 1.8; margin-top: 15px;">
+                我们致力于为户外爱好者提供最优质的装备和服务，让您的户外之旅更加精彩。
+            </p>
+        </div>
+
+        <div class="footer-section">
+            <h3>购物指南</h3>
+            <ul class="footer-links">
+                <li><a href="#">购物流程</a></li>
+                <li><a href="#">会员介绍</a></li>
+                <li><a href="#">常见问题</a></li>
+                <li><a href="#">联系客服</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-section">
+            <h3>支付方式</h3>
+            <p style="color: #ddd; line-height: 1.8; margin-top: 15px;">
+                支持支付宝、微信支付、银行卡等多种支付方式
+            </p>
+        </div>
+
+        <div class="footer-section">
+            <h3>售后服务</h3>
+            <ul class="footer-links">
+                <li><a href="#">退换货政策</a></li>
+                <li><a href="#">售后保障</a></li>
+                <li><a href="#">投诉建议</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="copyright">
+        <p>户外商品商城 &copy; 2024 版权所有</p>
+    </div>
+</footer>
+
+<script>
+    // ========== 购物车操作函数 ==========
+    function updateCartItem(itemId, newQuantity) {
+        // 获取商品价格
+        const totalElement = document.getElementById(`total-${itemId}`);
+        const price = parseFloat(totalElement.dataset.price);
+        const total = price * newQuantity;
+        totalElement.textContent = `¥${total.toFixed(2)}`;
+        totalElement.dataset.quantity = newQuantity;
+
+        // 重新计算总价
+        calculateTotal();
+
+        // 发送请求到服务器更新数量
+        fetch('/update_car/' + itemId, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ quantity: newQuantity })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                console.error('更新数量失败:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('更新数量失败:', error);
+        });
+    }
+
+    // 计算购物车总价
+    function calculateTotal() {
+        let subtotal = 0;
+        document.querySelectorAll('.item-total').forEach(element => {
+            const price = parseFloat(element.dataset.price);
+            const quantity = parseInt(element.dataset.quantity);
+            subtotal += price * quantity;
+        });
+
+        const formattedTotal = `¥${subtotal.toFixed(2)}`;
+        document.getElementById('subtotal').textContent = formattedTotal;
+        document.getElementById('grand-total').textContent = formattedTotal;
+
+        // 同时更新结算按钮中的价格
+        const checkoutTotal = document.getElementById('checkout-total');
+        if (checkoutTotal) {
+            checkoutTotal.textContent = formattedTotal;
+        }
+    }
+
+    // 删除购物车商品
+    function deleteCartItem(itemId) {
+        if (confirm('确定要删除这个商品吗？')) {
+            // 获取当前商品的数量和价格，先从前端移除
+            const itemElement = document.querySelector(`.cart-item[data-id="${itemId}"]`);
+            if (itemElement) {
+                itemElement.remove();
+                // 立即重新计算总价
+                calculateTotal();
+            }
+
+            // 发送AJAX请求到服务器删除商品
+            fetch('/remove_car/' + itemId, {
+                method: 'GET',
+                headers: {
+                    'Cache-Control': 'no-cache'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('删除失败');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (!data.success) {
+                    alert(data.message || '删除失败');
+                    // 如果删除失败，重新加载页面恢复状态
+                    location.reload();
+                } else {
+                    // 删除成功，检查购物车是否为空
+                    if (document.querySelectorAll('.cart-item').length === 0) {
+                        location.reload();
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('删除失败:', error);
+                alert('删除失败，请稍后再试！');
+                location.reload();
+            });
+        }
+    }
+
+    // 事件监听
+    document.addEventListener('DOMContentLoaded', function() {
+        // 结算按钮 - 添加事件监听器作为备份
+        const checkoutBtn = document.querySelector('.checkout-btn');
+        if (checkoutBtn) {
+            checkoutBtn.addEventListener('click', function(e) {
+                console.log('Checkout button clicked via event listener');
+                e.preventDefault();
+                showPaymentModal();
+            });
+        }
+
+        // 数量减少按钮
+        document.querySelectorAll('.decrease').forEach(button => {
+            button.addEventListener('click', function() {
+                const itemId = this.dataset.id;
+                const input = document.querySelector(`.quantity-input[data-id="${itemId}"]`);
+                let value = parseInt(input.value);
+                if (value > 1) {
+                    input.value = value - 1;
+                    updateCartItem(itemId, value - 1);
+                }
+            });
+        });
+
+        // 数量增加按钮
+        document.querySelectorAll('.increase').forEach(button => {
+            button.addEventListener('click', function() {
+                const itemId = this.dataset.id;
+                const input = document.querySelector(`.quantity-input[data-id="${itemId}"]`);
+                let value = parseInt(input.value);
+                if (value < 99) {
+                    input.value = value + 1;
+                    updateCartItem(itemId, value + 1);
+                }
+            });
+        });
+
+        // 数量输入框变化
+        document.querySelectorAll('.quantity-input').forEach(input => {
+            input.addEventListener('change', function() {
+                const itemId = this.dataset.id;
+                let value = parseInt(this.value);
+                if (value < 1) value = 1;
+                if (value > 99) value = 99;
+                this.value = value;
+                updateCartItem(itemId, value);
+            });
+        });
+
+        // 删除按钮
+        document.querySelectorAll('.action-btn.delete').forEach(button => {
+            button.addEventListener('click', function() {
+                const itemId = this.dataset.id;
+                deleteCartItem(itemId);
+            });
+        });
+
+        // 推荐商品加入购物车按钮
+        document.querySelectorAll('.add-to-cart-small').forEach(button => {
+            button.addEventListener('click', function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                const productId = this.dataset.id;
+
+                // 发送AJAX请求将商品加入购物车
+                fetch('/add_car/' + productId + '?ajax=1', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 显示加入成功提示
+                        const originalText = this.textContent;
+                        this.textContent = '已加入';
+                        this.style.background = '#28a745';
+
+                        setTimeout(() => {
+                            this.textContent = originalText;
+                            this.style.background = '#667eea';
+                        }, 2000);
+
+                        // 刷新页面以更新购物车显示和价格
+                        setTimeout(() => {
+                            location.reload();
+                        }, 500);
+                    } else {
+                        alert(data.message || '加入失败');
+                    }
+                })
+                .catch(error => {
+                    console.error('加入购物车失败:', error);
+                });
+            });
+        });
+    }
+
+</script>
+</body>
+</html>

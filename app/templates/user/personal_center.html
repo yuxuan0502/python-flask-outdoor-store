@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人中心 - 户外商品商城</title>
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='icons/favicon.svg') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='navbar.css') }}">
+    <style>
+        /* 个人中心特有样式 */
+        .personal-container {
+            padding: 40px 0;
+            min-height: 500px;
+        }
+
+        .personal-header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+        }
+
+        .personal-title {
+            font-size: 28px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .personal-welcome {
+            color: #666;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        .personal-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            padding: 0;
+            list-style: none;
+        }
+
+        .personal-tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            color: #666;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .personal-tab.active {
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .personal-tab.active:after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #667eea;
+        }
+
+        .personal-tab:hover {
+            color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* 登录/注册样式 */
+        .auth-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 450px;
+            margin: 0 auto;
+            padding: 50px 40px;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .auth-logo {
+            font-size: 36px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .auth-title {
+            font-size: 28px;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .auth-subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            outline: none;
+        }
+
+        .auth-button {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .auth-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .auth-toggle {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+        }
+
+        .auth-toggle a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .auth-toggle a:hover {
+        }
+
+        .login-tip {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .login-tip-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        /* 订单列表样式 */
+        .order-list {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        /* 订单状态筛选标签 */
+        .order-filter-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 0;
+            list-style: none;
+        }
+
+        .order-filter-tab {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            font-size: 15px;
+            color: #666;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .order-filter-tab.active {
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .order-filter-tab.active:after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #667eea;
+        }
+
+        .order-filter-tab:hover {
+            color: #667eea;
+        }
+
+        .order-card {
+            transition: all 0.3s;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .order-id {
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .order-status {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-paid {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .status-cancelled {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+
+        .status-pending {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .order-items {
+            padding: 20px;
+        }
+
+        .order-item {
+            display: grid;
+            grid-template-columns: 80px 2fr 1fr 1fr;
+            gap: 20px;
+            align-items: center;
+            padding: 15px 0;
+        }
+
+        .order-item-image {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .order-item-info {
+            padding-right: 20px;
+        }
+
+        .order-item-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 5px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .order-item-brand {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .order-item-quantity {
+            text-align: center;
+            color: #666;
+        }
+
+        .order-item-price {
+            text-align: right;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .order-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: #fafafa;
+            border-top: 1px solid #eee;
+        }
+
+        .order-total {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .order-total span {
+            color: #ff6b6b;
+            font-size: 24px;
+        }
+
+        .order-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .action-btn.rebuy {
+            background: #4caf50;
+            color: white;
+        }
+
+        .action-btn.rebuy:hover {
+            background: #43a047;
+        }
+
+        .action-btn.cancel {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .action-btn.cancel:hover {
+            background: #ff4757;
+        }
+
+        .action-btn.pay {
+            background: #ff9800;
+            color: white;
+        }
+
+        .action-btn.pay:hover {
+            background: #f57c00;
+        }
+
+        /* 收藏列表样式 */
+        .favorites-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .favorite-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .favorite-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+
+        .favorite-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .favorite-info {
+            padding: 15px;
+        }
+
+        .favorite-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            height: 44px;
+        }
+
+        .favorite-brand {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .favorite-price {
+            color: #ff6b6b;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .favorite-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .favorite-btn {
+            flex: 1;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .favorite-btn.view {
+            background: #667eea;
+            color: white;
+        }
+
+        .favorite-btn.view:hover {
+            background: #5a67d8;
+        }
+
+        .favorite-btn.remove {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .favorite-btn.remove:hover {
+            background: #ff4757;
+        }
+
+        .favorite-date {
+            color: #999;
+            font-size: 12px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #666;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .empty-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .flash-message {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .flash-success {
+            background: #e8f5e9;
+            color: #388e3c;
+            border-left: 4px solid #4caf50;
+        }
+
+        .flash-error {
+            background: #ffebee;
+            color: #d32f2f;
+            border-left: 4px solid #f44336;
+        }
+
+        @media (max-width: 768px) {
+            .order-item {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 15px;
+            }
+
+            .order-item-image {
+                margin: 0 auto;
+            }
+
+            .favorites-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- 导航栏 -->
+<header class="header">
+    <div class="w">
+        <a class="logo" href="{{ url_for('user.index') }}">
+            <span class="logo-text">Store</span>
+        </a>
+        <nav class="nav">
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('user.index') }}">首页</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('user.car') }}">购物车</a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="{{ url_for('user.personal_center') }}">个人中心</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('user.about') }}">全部商品</a>
+                </li>
+                <li class="nav-item search-item">
+                    <form class="search-form" action="{{ url_for('user.search') }}" method="GET">
+                        <input class="search-input-sm" type="text" name="keyword" placeholder="搜索商品..." value="{{ request.args.get('keyword', '') }}">
+                        <button class="search-btn-sm" type="submit">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </button>
+                    </form>
+                </li>
+                <li class="nav-item">
+                    {% if user %}
+                    <div class="user-info">
+                        <span class="user-name">欢迎，{{ user.name }}</span>
+                        <a href="{{ url_for('user.logout') }}" class="logout-btn">退出</a>
+                    </div>
+                    {% endif %}
+                </li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<!-- 个人中心内容 -->
+<div class="w personal-container">
+    {% if user %}
+    <!-- 已登录状态 -->
+    <div class="page-header">
+        <h1 class="page-title">个人中心</h1>
+        <div class="page-subtitle">欢迎回来，{{ user.name }}！</div>
+    </div>
+
+    <!-- 标签页 -->
+    <ul class="personal-tabs">
+        <li>
+            <button class="personal-tab active" onclick="showTab('orders')">我的订单</button>
+        </li>
+        <li>
+            <button class="personal-tab" onclick="showTab('favorites')">我的收藏</button>
+        </li>
+        <li>
+            <button class="personal-tab" onclick="showTab('history')">浏览历史</button>
+        </li>
+    </ul>
+
+    <!-- 订单标签页内容 -->
+    <div id="orders-tab" class="tab-content active">
+        {% if orders %}
+        <!-- 订单状态筛选标签 -->
+        <ul class="order-filter-tabs">
+            <li>
+                <button class="order-filter-tab active" onclick="filterOrders('all', this)">全部订单</button>
+            </li>
+            <li>
+                <button class="order-filter-tab" onclick="filterOrders('paid', this)">已支付</button>
+            </li>
+            <li>
+                <button class="order-filter-tab" onclick="filterOrders('pending', this)">待支付</button>
+            </li>
+            <li>
+                <button class="order-filter-tab" onclick="filterOrders('cancelled', this)">已取消</button>
+            </li>
+        </ul>
+
+        <div class="order-list">
+            {% for order in orders %}
+            <div class="order-card" data-status="{% if order.is_cancel == 1 %}cancelled{% elif order.is_pay == 1 %}paid{% else %}pending{% endif %}">
+                <div class="order-header">
+                    <span class="order-id">订单号：{{ order.item_id }}</span>
+                    {% if order.is_cancel == 1 %}
+                        <span class="order-status status-cancelled">已取消</span>
+                    {% elif order.is_pay == 0 %}
+                        <span class="order-status status-pending">待支付</span>
+                    {% elif order.is_pay == 1 %}
+                        <span class="order-status status-paid">已支付</span>
+                    {% endif %}
+                </div>
+
+                <div class="order-items">
+                    <div class="order-item">
+                        <img src="{{ order.product.photo }}" alt="{{ order.product.name }}" class="order-item-image">
+
+                        <div class="order-item-info">
+                            <h3 class="order-item-name">{{ order.product.name }}</h3>
+                            <div class="order-item-brand">品牌：{{ order.product.derive }}</div>
+                        </div>
+
+                        <div class="order-item-quantity">
+                            ×{{ order.number }}
+                        </div>
+
+                        <div class="order-item-price">
+                            ¥{{ (order.number * order.product.price)|round(2) }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="order-footer">
+                    <div class="order-total">
+                        订单金额：<span>¥{{ (order.number * order.product.price)|round(2) }}</span>
+                    </div>
+
+                    <div class="order-actions">
+                        {% if order.is_pay == 1 %}
+                            <a href="{{ url_for('user.add_car', id=order.product.id) }}" class="action-btn rebuy">再次购买</a>
+                        {% elif order.is_cancel == 0 and order.is_pay == 0 %}
+                            <a href="{{ url_for('user.cancel_order', item_id=order.item_id) }}" class="action-btn cancel" onclick="return confirm('确定要取消这个订单吗？')">取消订单</a>
+                            <a href="{{ url_for('user.car') }}" class="action-btn pay">去支付</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📦</div>
+            <h3>暂无订单</h3>
+            <p style="color: #999; margin-bottom: 30px;">您还没有任何订单记录，快去选购心仪的商品吧！</p>
+            <a href="{{ url_for('user.index') }}" class="action-btn rebuy" style="display: inline-block; padding: 12px 30px;">
+                去首页逛逛
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- 收藏标签页内容 -->
+    <div id="favorites-tab" class="tab-content">
+        {% if collections %}
+        <div class="favorites-grid">
+            {% for collection in collections %}
+            <div class="favorite-card">
+                <img src="{{ collection.product.photo }}" alt="{{ collection.product.name }}" class="favorite-image">
+                <div class="favorite-info">
+                    <h3 class="favorite-name">{{ collection.product.name }}</h3>
+                    <div class="favorite-brand">品牌：{{ collection.product.derive }}</div>
+                    <div class="favorite-price">¥{{ collection.product.price }}</div>
+                    <div class="favorite-date">收藏于：{{ collection.created_at.strftime('%Y-%m-%d') }}</div>
+                    <div class="favorite-actions">
+                        <a href="{{ url_for('user.detail', id=collection.product.id) }}" class="favorite-btn view">查看详情</a>
+                        <button class="favorite-btn remove" onclick="removeFavorite({{ collection.id }})">取消收藏</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">❤️</div>
+            <h3>暂无收藏</h3>
+            <p style="color: #999; margin-bottom: 30px;">您还没有收藏任何商品，快去发现心仪的商品吧！</p>
+            <a href="{{ url_for('user.about') }}" class="action-btn rebuy" style="display: inline-block; padding: 12px 30px;">
+                浏览商品
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- 浏览历史标签页内容 -->
+    <div id="history-tab" class="tab-content">
+        {% if browse_histories %}
+        <div class="favorites-grid">
+            {% for history in browse_histories[:50] %}
+            <div class="favorite-card">
+                <img src="{{ history.product.photo }}" alt="{{ history.product.name }}" class="favorite-image">
+                <div class="favorite-info">
+                    <h3 class="favorite-name">{{ history.product.name }}</h3>
+                    <div class="favorite-brand">品牌：{{ history.product.derive }}</div>
+                    <div class="favorite-price">¥{{ history.product.price }}</div>
+                    <div class="favorite-date">浏览于：{{ history.browse_time.strftime('%Y-%m-%d %H:%M') }}</div>
+                    <div class="favorite-actions">
+                        <a href="{{ url_for('user.detail', id=history.product.id) }}" class="favorite-btn view">查看详情</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">👁️</div>
+            <h3>暂无浏览历史</h3>
+            <p style="color: #999; margin-bottom: 30px;">您还没有浏览过任何商品，快去探索吧！</p>
+            <a href="{{ url_for('user.about') }}" class="action-btn rebuy" style="display: inline-block; padding: 12px 30px;">
+                浏览商品
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    {% else %}
+    <!-- 未登录状态 - 显示登录按钮 -->
+    <div class="login-tip">
+        <div class="login-tip-icon">🔒</div>
+        <h2 style="font-size: 24px; margin-bottom: 15px; color: #333;">请先登录</h2>
+        <p style="color: #999; margin-bottom: 30px;">登录后即可查看订单、收藏和浏览历史</p>
+        <a href="http://localhost:5050/login" class="auth-button" style="display: inline-block; text-align: center; text-decoration: none; width: auto; padding: 18px 60px;">登录</a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- 页脚 -->
+<footer class="footer">
+    <div class="footer-content">
+        <div class="footer-section">
+            <h3>关于我们</h3>
+            <p style="color: #ddd; line-height: 1.8; margin-top: 15px;">
+                我们致力于为户外爱好者提供最优质的装备和服务，让您的户外之旅更加精彩。
+            </p>
+        </div>
+
+        <div class="footer-section">
+            <h3>购物指南</h3>
+            <ul class="footer-links">
+                <li><a href="{{ url_for('user.index') }}">首页</a></li>
+                <li><a href="{{ url_for('user.about') }}">全部商品</a></li>
+                <li><a href="{{ url_for('user.car') }}">购物车</a></li>
+                <li><a href="{{ url_for('user.personal_center') }}">个人中心</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-section">
+            <h3>售后服务</h3>
+            <ul class="footer-links">
+                <li><a href="#">退换货政策</a></li>
+                <li><a href="#">售后保障</a></li>
+                <li><a href="#">投诉建议</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-section">
+            <h3>联系我们</h3>
+            <p style="color: #ddd; line-height: 1.8; margin-top: 15px;">
+                电话：400-123-4567<br>
+                邮箱：service@outdoor.com<br>
+                工作时间：9:00-18:00
+            </p>
+        </div>
+    </div>
+
+    <div class="copyright">
+        <p>户外商品商城 &copy; 2024 版权所有</p>
+    </div>
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    // 切换标签页
+    function showTab(tab) {
+        // 更新标签页样式
+        document.querySelectorAll('.personal-tab').forEach(button => {
+            button.classList.remove('active');
+        });
+        event.target.classList.add('active');
+
+        // 切换内容
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+
+        if (tab === 'orders') {
+            document.getElementById('orders-tab').classList.add('active');
+        } else if (tab === 'favorites') {
+            document.getElementById('favorites-tab').classList.add('active');
+        } else if (tab === 'history') {
+            document.getElementById('history-tab').classList.add('active');
+        }
+    }
+
+    // 筛选订单
+    function filterOrders(status, element) {
+        // 更新筛选标签样式
+        document.querySelectorAll('.order-filter-tab').forEach(button => {
+            button.classList.remove('active');
+        });
+        element.classList.add('active');
+
+        // 筛选订单卡片
+        const orderCards = document.querySelectorAll('.order-card');
+        orderCards.forEach(card => {
+            if (status === 'all') {
+                card.style.display = 'block';
+            } else {
+                const cardStatus = card.getAttribute('data-status');
+                if (cardStatus === status) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            }
+        });
+    }
+
+    // 取消收藏
+    function removeFavorite(collectionId) {
+        if (confirm('确定要取消收藏吗？')) {
+            $.ajax({
+                url: '{{ url_for("user.remove_collection", collection_id=0) }}'.replace('0', collectionId),
+                type: 'GET',
+                success: function(response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        alert(response.message || '取消收藏失败');
+                    }
+                },
+                error: function() {
+                    alert('网络错误，请稍后重试');
+                }
+            });
+        }
+    }
+</script>
+</body>
+</html>

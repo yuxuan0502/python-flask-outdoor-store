@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全部商品 - 户外商品商城</title>
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='icons/favicon.svg') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='navbar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='page.css') }}">
+    <style>
+        /* about页面特有样式 */
+        .about-container {
+            padding: 40px 0;
+            min-height: 600px;
+        }
+
+        .page-title {
+            font-size: 32px;
+            color: #333;
+            text-align: center;
+            margin-bottom: 40px;
+            font-weight: 600;
+        }
+
+        /* 分类标签 */
+        .category-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .category-tab {
+            padding: 12px 30px;
+            background: #f5f7fa;
+            color: #666;
+            border-radius: 25px;
+            font-size: 15px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .category-tab:hover {
+            background: #e8ecf1;
+            color: #333;
+            transform: translateY(-2px);
+        }
+
+        .category-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        /* 筛选区域 */
+        .filter-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+
+        .search-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            outline: none;
+        }
+
+        .search-btn {
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .filter-group {
+            margin-bottom: 0;
+        }
+
+        .filter-label {
+            display: block;
+            margin-bottom: 10px;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .filter-select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filter-select:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        /* 商品网格 */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+        }
+
+        .product-image-wrapper {
+            position: relative;
+            height: 220px;
+            overflow: hidden;
+        }
+
+        .product-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+
+        .product-card:hover .product-image {
+            transform: scale(1.05);
+        }
+
+        .product-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #ff6b6b;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .product-category {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 2;
+        }
+
+        .product-content {
+            padding: 25px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .product-card a,
+        .product-card a:hover {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .product-brand {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .product-price {
+            color: #ff6b6b;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .product-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #999;
+            margin-top: auto;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .product-action {
+            margin-top: 20px;
+        }
+
+        .add-to-cart-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .add-to-cart-btn:hover {
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+            transform: translateY(-2px);
+        }
+
+        /* 统计区域 */
+        .stats-container {
+            margin-top: 60px;
+        }
+
+        .stats-title {
+            font-size: 24px;
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(550px, 1fr));
+            gap: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .stat-card-title {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #666;
+        }
+
+        .empty-icon {
+            font-size: 60px;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+
+        .empty-title {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .empty-text {
+            color: #999;
+            margin-bottom: 30px;
+            max-width: 400px;
+            margin: 0 auto 30px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 1200px) {
+            .w {
+                width: 100%;
+                padding: 0 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .product-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 20px;
+            }
+
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .search-container {
+                flex-direction: column;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .product-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page-title {
+                font-size: 24px;
+                margin-bottom: 30px;
+            }
+
+            .filter-panel {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- 导航栏 - 使用统一的导航栏 -->
+<header class="header">
+    <div class="w">
+        <a class="logo" href="{{ url_for('user.index') }}">
+            <span class="logo-text">Store</span>
+        </a>
+        <nav class="nav">
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('user.index') }}">首页</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('user.car') }}">购物车</a>
+                </li>
+                <li class="nav-item {% if request.endpoint == 'user.personal_center' %}active{% endif %}">
+                    <a class="nav-link" href="{{ url_for('user.personal_center') }}">个人中心</a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="{{ url_for('user.about') }}">全部商品</a>
+                </li>
+                <li class="nav-item search-item">
+                    <form class="search-form" action="{{ url_for('user.search') }}" method="GET">
+                        <input class="search-input-sm" type="text" name="keyword" placeholder="搜索商品..." value="{{ request.args.get('keyword', '') }}">
+                        <button class="search-btn-sm" type="submit">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </button>
+                    </form>
+                </li>
+                <li class="nav-item">
+                    {% if user %}
+                    <div class="user-info">
+                        <span class="user-name">欢迎，{{ user.name }}</span>
+                        <a href="{{ url_for('user.logout') }}" class="logout-btn">退出</a>
+                    </div>
+                    {% endif %}
+                </li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<!-- 页面内容 -->
+<main class="about-container">
+    <div class="w">
+        <div class="page-header">
+            <h1 class="page-title">
+                {% if current_category %}
+                {{ current_category }}
+                {% else %}
+                全部商品
+                {% endif %}
+            </h1>
+        </div>
+
+        <!-- 分类快捷筛选 -->
+        <div class="category-tabs" style="margin-bottom: 30px; text-align: center;">
+            <a href="{{ url_for('user.about') }}" class="category-tab {% if not current_category_param %}active{% endif %}">全部商品</a>
+            <a href="{{ url_for('user.about', category='clothing') }}" class="category-tab {% if current_category_param == 'clothing' %}active{% endif %}">户外服装</a>
+            <a href="{{ url_for('user.about', category='equipment') }}" class="category-tab {% if current_category_param == 'equipment' %}active{% endif %}">户外装备</a>
+            <a href="{{ url_for('user.about', category='tools') }}" class="category-tab {% if current_category_param == 'tools' %}active{% endif %}">户外工具</a>
+        </div>
+
+<!-- 搜索和筛选面板 -->
+<div class="filter-panel">
+    <!-- 搜索框 -->
+    <form class="search-container" action="{{ url_for('user.about') }}" method="GET" id="aboutSearchForm">
+        <input type="text" name="keyword" class="search-input" placeholder="输入商品名称或品牌..."
+               value="{{ current_keyword if current_keyword else '' }}">
+        <button type="submit" class="search-btn">搜索商品</button>
+
+        <!-- 隐藏字段，用于保存筛选条件 -->
+        <input type="hidden" name="sort" id="form-sort" value="{{ current_sort if current_sort else 'default' }}">
+        <input type="hidden" name="price_range" id="form-price-range" value="{{ current_price if current_price else '' }}">
+        <input type="hidden" name="brand" id="form-brand" value="{{ current_brand if current_brand else '' }}">
+    </form>
+
+    <!-- 筛选选项 -->
+    <div class="filter-grid">
+        <div class="filter-group">
+            <label class="filter-label">价格范围</label>
+            <select class="filter-select" id="price-filter" onchange="updatePriceFilter(this.value)">
+                <option value="">全部价格</option>
+                <option value="0-100" {% if current_price == '0-100' %}selected{% endif %}>0-100元</option>
+                <option value="100-500" {% if current_price == '100-500' %}selected{% endif %}>100-500元</option>
+                <option value="500-1000" {% if current_price == '500-1000' %}selected{% endif %}>500-1000元</option>
+                <option value="1000+" {% if current_price == '1000+' %}selected{% endif %}>1000元以上</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label class="filter-label">品牌</label>
+            <select class="filter-select" id="brand-filter" onchange="updateBrandFilter(this.value)">
+                <option value="">全部品牌</option>
+                {% for brand in brands %}
+                <option value="{{ brand }}"
+                        {% if current_brand == brand %}selected{% endif %}>
+                    {{ brand }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label class="filter-label">排序方式</label>
+            <select class="filter-select" id="sort-filter" onchange="updateSortFilter(this.value)">
+                <option value="default" {% if current_sort == 'default' %}selected{% endif %}>默认排序</option>
+                <option value="sales_desc" {% if current_sort == 'sales_desc' %}selected{% endif %}>销量从高到低</option>
+                <option value="sales_asc" {% if current_sort == 'sales_asc' %}selected{% endif %}>销量从低到高</option>
+                <option value="price_desc" {% if current_sort == 'price_desc' %}selected{% endif %}>价格从高到低</option>
+                <option value="price_asc" {% if current_sort == 'price_asc' %}selected{% endif %}>价格从低到高</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+        {% if products %}
+        <!-- 商品网格 -->
+        <div class="product-grid">
+            {% for product in products %}
+            <div class="product-card">
+                <a href="{{ url_for('user.detail', id=product.id) }}" style="text-decoration: none; color: inherit;">
+                    <div class="product-image-wrapper">
+                        <img src="{{ product.photo }}" alt="{{ product.name }}" class="product-image">
+                        {% if product.category %}
+                        <span class="product-category">{{ product.category }}</span>
+                        {% endif %}
+                        {% if product.sales > 100 %}
+                        <span class="product-badge">热销</span>
+                        {% endif %}
+                    </div>
+                </a>
+                <div class="product-content">
+                    <a href="{{ url_for('user.detail', id=product.id) }}" style="text-decoration: none; color: inherit;">
+                        <h3 class="product-title">{{ product.name }}</h3>
+                    </a>
+                    <div class="product-brand">品牌：{{ product.derive }}</div>
+                    <div class="product-price">¥{{ product.price }}</div>
+                    <div class="product-meta">
+                        <span>销量：{{ product.sales }}</span>
+                        <span>库存充足</span>
+                    </div>
+                    <div class="product-action">
+                        <a href="{{ url_for('user.add_car', id=product.id) }}" class="add-to-cart-btn">
+                            加入购物车
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- 分页 -->
+        {% if page.pages > 1 %}
+        <div class="pagination-container">
+            <div class="pagination">
+                {% if page.has_prev %}
+                <a href="{{ url_for('user.about', page=page.prev_num, category=current_category_param, keyword=current_keyword, sort=current_sort, price_range=current_price, brand=current_brand) }}" class="pagination-arrow">&lt;</a>
+                {% else %}
+                <span class="pagination-arrow disabled">&lt;</span>
+                {% endif %}
+
+                {% for p in page.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                {% if p %}
+                {% if p == page.page %}
+                <a href="{{ url_for('user.about', page=p, category=current_category_param, keyword=current_keyword, sort=current_sort, price_range=current_price, brand=current_brand) }}" class="current-page">{{ p }}</a>
+                {% else %}
+                <a href="{{ url_for('user.about', page=p, category=current_category_param, keyword=current_keyword, sort=current_sort, price_range=current_price, brand=current_brand) }}">{{ p }}</a>
+                {% endif %}
+                {% else %}
+                <span class="ellipsis">...</span>
+                {% endif %}
+                {% endfor %}
+
+                {% if page.has_next %}
+                <a href="{{ url_for('user.about', page=page.next_num, category=current_category_param, keyword=current_keyword, sort=current_sort, price_range=current_price, brand=current_brand) }}" class="pagination-arrow">&gt;</a>
+                {% else %}
+                <span class="pagination-arrow disabled">&gt;</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <!-- 空状态 -->
+        <div class="empty-state">
+            <div class="empty-icon">📦</div>
+            <h2 class="empty-title">暂无商品</h2>
+            <p class="empty-text">暂时没有找到符合条件的商品，您可以尝试其他筛选条件或搜索其他关键词。</p>
+            <a href="{{ url_for('user.about') }}" class="btn btn-primary">查看所有商品</a>
+        </div>
+        {% endif %}
+    </div>
+</main>
+
+<!-- 页脚 -->
+<footer class="footer">
+    <div class="footer-content">
+        <div class="footer-section">
+            <h3>关于我们</h3>
+            <p>我们致力于为户外爱好者提供最优质的装备和服务，让您的户外之旅更加精彩。</p>
+        </div>
+
+        <div class="footer-section">
+            <h3>购物指南</h3>
+            <ul class="footer-links">
+                <li><a href="{{ url_for('user.index') }}">首页</a></li>
+                <li><a href="{{ url_for('user.about') }}">全部商品</a></li>
+                <li><a href="{{ url_for('user.car') }}">购物车</a></li>
+                <li><a href="{{ url_for('user.personal_center') }}">个人中心</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-section">
+            <h3>售后服务</h3>
+            <ul class="footer-links">
+                <li><a href="#">退换货政策</a></li>
+                <li><a href="#">售后保障</a></li>
+                <li><a href="#">投诉建议</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-section">
+            <h3>联系我们</h3>
+            <p>电话：400-123-4567<br>邮箱：service@outdoor.com<br>工作时间：9:00-18:00</p>
+        </div>
+    </div>
+
+    <div class="copyright">
+        <p>户外商品商城 &copy; 2024 版权所有</p>
+    </div>
+</footer>
+
+<script>
+    // 筛选功能
+    function updateSortFilter(sortValue) {
+        document.getElementById('form-sort').value = sortValue;
+        document.getElementById('aboutSearchForm').submit();
+    }
+
+    function updatePriceFilter(priceRange) {
+        document.getElementById('form-price-range').value = priceRange;
+        document.getElementById('aboutSearchForm').submit();
+    }
+
+    function updateBrandFilter(brand) {
+        document.getElementById('form-brand').value = brand;
+        document.getElementById('aboutSearchForm').submit();
+    }
+
+    // 页面加载时恢复筛选状态
+    document.addEventListener('DOMContentLoaded', function() {
+        // 处理分页链接，保持筛选参数
+        const paginationLinks = document.querySelectorAll('.pagination a');
+        paginationLinks.forEach(link => {
+            if (link.href && link.href.includes('?')) {
+                const url = new URL(link.href);
+
+                // 添加当前筛选参数到分页链接
+                const sortValue = document.getElementById('form-sort').value;
+                const priceRange = document.getElementById('form-price-range').value;
+                const brandValue = document.getElementById('form-brand').value;
+                const keyword = document.querySelector('input[name="keyword"]').value;
+                const categoryParam = '{{ current_category_param }}';
+
+                if (sortValue && sortValue !== 'default') {
+                    url.searchParams.set('sort', sortValue);
+                }
+
+                if (priceRange) {
+                    url.searchParams.set('price_range', priceRange);
+                }
+
+                if (brandValue) {
+                    url.searchParams.set('brand', brandValue);
+                }
+
+                if (keyword) {
+                    url.searchParams.set('keyword', keyword);
+                }
+
+                if (categoryParam) {
+                    url.searchParams.set('category', categoryParam);
+                }
+
+                link.href = url.toString();
+            }
+        });
+
+        // 处理搜索表单提交（防止空搜索跳转）
+        document.getElementById('aboutSearchForm').addEventListener('submit', function(e) {
+            const keywordInput = this.querySelector('input[name="keyword"]');
+
+            // 如果搜索框为空，但其他筛选条件有值，允许提交
+            if (!keywordInput.value.trim()) {
+                // 清空隐藏的keyword参数
+                keywordInput.value = '';
+            }
+        });
+    });
+</script>
+</body>
+</html>

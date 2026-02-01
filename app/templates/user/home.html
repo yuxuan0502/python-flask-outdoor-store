@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>首页 - 户外商品商城</title>
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='icons/favicon.svg') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='navbar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='page.css') }}">
+    <style>
+        /* 首页特有样式 */
+        .hero-section {
+            position: relative;
+            height: 500px;
+            overflow: hidden;
+            border-radius: 12px;
+            margin: 20px 0 40px;
+        }
+
+        .slider {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .slides {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+            z-index: 1;
+        }
+
+        .slide.active {
+            opacity: 1;
+            z-index: 2;
+        }
+
+        .slide-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .slide-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, rgba(0,0,0,0.7), rgba(0,0,0,0.3));
+        }
+
+        .slide-content {
+            position: absolute;
+            top: 50%;
+            left: 10%;
+            transform: translateY(-50%);
+            color: white;
+            max-width: 500px;
+            z-index: 3;
+        }
+
+        .slide-title {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .slide-description {
+            font-size: 18px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .slide-button {
+            display: inline-block;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .slide-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .slider-controls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 4;
+        }
+
+        .slider-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .slider-dot.active {
+            background: white;
+            transform: scale(1.3);
+        }
+
+        .slider-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 4;
+            transition: all 0.3s;
+        }
+
+        .slider-nav:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .slider-prev {
+            left: 30px;
+        }
+
+        .slider-next {
+            right: 30px;
+        }
+
+        /* 热门商品区域 */
+        .featured-section {
+            margin: 60px 0;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 32px;
+            color: #333;
+            font-weight: 700;
+        }
+
+        .view-all-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .view-all-link:hover {
+            color: #5a67d8;
+        }
+
+        /* 商品分类区域 */
+        .category-section {
+            padding: 60px 0;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+        }
+
+        .category-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .category-title {
+            font-size: 32px;
+            color: #333;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .category-subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        .category-card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .category-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        .category-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        .category-name {
+            font-size: 22px;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .category-desc {
+            color: #666;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .category-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+
+        .featured-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+        }
+
+        .featured-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+        }
+
+        .featured-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+        }
+
+        .featured-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .featured-content {
+            padding: 20px;
+        }
+
+        .featured-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .featured-card a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .featured-brand {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .featured-price {
+            color: #ff6b6b;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .featured-sales {
+            font-size: 14px;
+            color: #999;
+        }
+
+        /* 为您推荐区域 */
+        .recommend-section {
+            margin: 60px 0;
+        }
+
+        .recommend-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+        }
+
+        .recommend-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+        }
+
+        .recommend-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+        }
+
+        .recommend-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .recommend-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .recommend-card a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .recommend-info {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .recommend-price {
+            color: #ff6b6b;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        /* 畅销榜区域 */
+        .hot-section {
+            margin: 60px 0;
+        }
+
+        .hot-list {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .hot-item {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .hot-item:hover {
+            background: #f8f9fa;
+            transform: translateX(10px);
+        }
+
+        .hot-item:last-child {
+            border-bottom: none;
+        }
+
+        .hot-rank {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+            margin-right: 20px;
+        }
+
+        .hot-info {
+            flex: 1;
+        }
+
+        .hot-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .hot-item a,
+        .hot-item a:hover {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .hot-brand {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .hot-sales {
+            color: #999;
+            font-size: 14px;
+        }
+
+        /* 图表区域 */
+        .chart-section {
+            margin: 60px 0;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .featured-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .recommend-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .slide-title {
+                font-size: 36px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .featured-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .recommend-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .hero-section {
+                height: 400px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .featured-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .recommend-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .hero-section {
+                height: 300px;
+            }
+
+            .slide-title {
+                font-size: 28px;
+            }
+
+            .slide-description {
+                font-size: 16px;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .slider-nav {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+            }
+
+            .slider-prev {
+                left: 15px;
+            }
+
+            .slider-next {
+                right: 15px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .recommend-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-section {
+                height: 250px;
+            }
+
+            .slide-content {
+                left: 5%;
+                right: 5%;
+            }
+
+            .slide-title {
+                font-size: 24px;
+            }
+
+            .slide-button {
+                padding: 12px 25px;
+                font-size: 16px;
+            }
+        }
+
+        /* 修复首页居中问题 */
+        .w {
+            width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* 确保所有主要内容都包含在 .w 容器中 */
+        .hero-section,
+        .featured-section,
+        .recommend-section,
+        .hot-section,
+        .chart-section {
+            width: 100%;
+        }
+
+        .hero-section .w,
+        .featured-section .w,
+        .recommend-section .w,
+        .hot-section .w,
+        .chart-section .w {
+            width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .w {
+                width: 100%;
+                padding: 0 20px;
+            }
+
+            .hero-section .w,
+            .featured-section .w,
+            .recommend-section .w,
+            .hot-section .w,
+            .chart-section .w {
+                width: 100%;
+                padding: 0 20px;
+            }
+        }
+
+        /* 确保轮播图容器正确显示 */
+        .hero-section {
+            position: relative;
+            height: 500px;
+            overflow: hidden;
+            border-radius: 12px;
+            margin: 20px auto 40px;
+            max-width: 1200px;
+        }
+
+        .slider {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 修复幻灯片显示问题 */
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+            z-index: 1;
+        }
+
+        .slide.active {
+            opacity: 1;
+            z-index: 2;
+        }
+
+        /* 确保图片正确显示 */
+        .slide-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    </style>
+</head>
+<body>
+<!-- 导航栏 -->
+<header class="header">
+    <div class="w">
+        <a class="logo" href="{{ url_for('user.index') }}">
+            <span class="logo-text">Store</span>
+        </a>
+        <nav class="nav">
+            <ul class="nav-list">
+                <li class="nav-item active">
+                    <a class="nav-link" href="{{ url_for('user.index') }}">首页</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('user.car') }}">购物车</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('user.personal_center') }}">个人中心</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('user.about') }}">全部商品</a>
+                </li>
+                <li class="nav-item search-item">
+                    <form class="search-form" action="{{ url_for('user.search') }}" method="GET">
+                        <input class="search-input-sm" type="text" name="keyword" placeholder="搜索商品..." value="{{ request.args.get('keyword', '') }}">
+                        <button class="search-btn-sm" type="submit">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </button>
+                    </form>
+                </li>
+                <li class="nav-item">
+                    {% if user %}
+                    <div class="user-info">
+                        <span class="user-name">欢迎，{{ user.name }}</span>
+                        <a href="{{ url_for('user.logout') }}" class="logout-btn">退出</a>
+                    </div>
+                    {% endif %}
+                </li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<!-- 轮播图 -->
+<div class="hero-section w">
+    <div class="slider" id="slider">
+        {% if random_products %}
+            <div class="slides">
+                {% for product in random_products %}
+                <div class="slide {% if loop.first %}active{% endif %}">
+                    <img src="{{ product.photo }}" alt="{{ product.name }}" class="slide-image">
+                    <div class="slide-overlay"></div>
+                    <div class="slide-content">
+                        <h2 class="slide-title">{{ product.name }}</h2>
+                        <p class="slide-description">{{ product.derive }} - ¥{{ product.price }}</p>
+                        <a href="{{ url_for('user.detail', id=product.id) }}" class="slide-button">查看详情</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="slides">
+                <div class="slide active">
+                    <div class="slide-overlay"></div>
+                    <div class="slide-content">
+                        <h2 class="slide-title">户外装备商城</h2>
+                        <p class="slide-description">探索户外世界，发现专业装备</p>
+                        <a href="{{ url_for('user.about') }}" class="slide-button">浏览商品</a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <button class="slider-nav slider-prev" onclick="prevSlide()">‹</button>
+        <button class="slider-nav slider-next" onclick="nextSlide()">›</button>
+
+        <div class="slider-controls" id="sliderDots">
+            {% if random_products %}
+                {% for product in random_products %}
+                <div class="slider-dot {% if loop.first %}active{% endif %}" onclick="goToSlide({{ loop.index0 }})"></div>
+                {% endfor %}
+            {% else %}
+                <div class="slider-dot active" onclick="goToSlide(0)"></div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- 商品分类 -->
+<div class="category-section">
+    <div class="w">
+        <div class="category-header">
+            <h2 class="category-title">商品分类</h2>
+            <p class="category-subtitle">选择您感兴趣的商品类别</p>
+        </div>
+
+        <div class="category-grid">
+            <a href="{{ url_for('user.about', category='clothing') }}" class="category-card">
+                <div class="category-icon">🧥</div>
+                <h3 class="category-name">户外服装</h3>
+                <p class="category-desc">手套、袜子、帽子等穿戴用品</p>
+            </a>
+
+            <a href="{{ url_for('user.about', category='equipment') }}" class="category-card">
+                <div class="category-icon">🎒</div>
+                <h3 class="category-name">户外装备</h3>
+                <p class="category-desc">水具、背包、帐篷等户外装备</p>
+            </a>
+
+            <a href="{{ url_for('user.about', category='tools') }}" class="category-card">
+                <div class="category-icon">🔧</div>
+                <h3 class="category-name">户外工具</h3>
+                <p class="category-desc">指南针、照明灯等实用工具</p>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- 热门商品 -->
+<div class="featured-section w">
+    <div class="section-header">
+        <h2 class="section-title">热门商品</h2>
+        <a href="{{ url_for('user.about') }}" class="view-all-link">
+            查看全部
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+        </a>
+    </div>
+
+    <div class="featured-grid">
+        {% if hot_products %}
+            {% for product in hot_products[:8] %}
+            <div class="featured-card">
+                <a href="{{ url_for('user.detail', id=product.id) }}">
+                    <img src="{{ product.photo }}" alt="{{ product.name }}" class="featured-image">
+                    <div class="featured-content">
+                        <h3 class="featured-name">{{ product.name }}</h3>
+                        <div class="featured-brand">品牌：{{ product.derive }}</div>
+                        <div class="featured-price">¥{{ product.price }}</div>
+                        <div class="featured-sales">销量：{{ product.sales }}</div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        {% else %}
+            {% for i in range(4) %}
+            <div class="featured-card">
+                <div class="featured-content">
+                    <div style="text-align: center; color: #999; padding: 40px 0;">
+                        暂无商品数据
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
+
+<!-- 分页 -->
+<!-- 分页 -->
+{% if page and page.pages > 1 %}
+<div class="pagination-container">
+    <div class="pagination">
+        {% if page.has_prev %}
+        <a href="{{ url_for('user.index', page=page.prev_num) }}" class="pagination-arrow">&lt;</a>
+        {% else %}
+        <span class="pagination-arrow disabled">&lt;</span>
+        {% endif %}
+
+        {% for p in page.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+        {% if p %}
+        {% if p == page.page %}
+        <a href="{{ url_for('user.index', page=p) }}" class="current-page">{{ p }}</a>
+        {% else %}
+        <a href="{{ url_for('user.index', page=p) }}">{{ p }}</a>
+        {% endif %}
+        {% else %}
+        <span class="ellipsis">...</span>
+        {% endif %}
+        {% endfor %}
+
+        {% if page.has_next %}
+        <a href="{{ url_for('user.index', page=page.next_num) }}" class="pagination-arrow">&gt;</a>
+        {% else %}
+        <span class="pagination-arrow disabled">&gt;</span>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- 为您推荐 -->
+<div class="recommend-section w">
+    <div class="section-header">
+        <h2 class="section-title">为您推荐</h2>
+        <p style="color: #666; font-size: 14px;">基于您的浏览记录和购买行为推荐</p>
+    </div>
+
+    <div class="recommend-grid">
+        {% if recommended_products %}
+            {% for product in recommended_products[:5] %}
+            <div class="recommend-card">
+                <a href="{{ url_for('user.detail', id=product.id) }}">
+                    <img src="{{ product.photo }}" alt="{{ product.name }}" class="recommend-image">
+                    <h3 class="recommend-name">{{ product.name }}</h3>
+                    <div class="recommend-info">品牌：{{ product.derive }}</div>
+                    <div class="recommend-price">¥{{ product.price }}</div>
+                </a>
+            </div>
+            {% endfor %}
+        {% else %}
+            {% for i in range(5) %}
+            <div class="recommend-card">
+                <div style="text-align: center; color: #999; padding: 20px 0;">
+                    暂无推荐
+                </div>
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
+
+
+<!-- 畅销榜 -->
+<div class="hot-section w">
+    <div class="section-header">
+        <h2 class="section-title">畅销榜</h2>
+    </div>
+
+    <div class="hot-list">
+        {% if hot_products %}
+            {% for product in hot_products[:10] %}
+            <a href="{{ url_for('user.detail', id=product.id) }}" class="hot-item">
+                <div class="hot-rank">{{ loop.index }}</div>
+                <div class="hot-info">
+                    <h3 class="hot-name">{{ product.name }}</h3>
+                    <div class="hot-brand">品牌：{{ product.derive }}</div>
+                    <div class="hot-sales">销量：{{ product.sales }} | 价格：¥{{ product.price }}</div>
+                </div>
+            </a>
+            {% endfor %}
+        {% else %}
+            <div style="text-align: center; color: #999; padding: 40px 0;">
+                暂无销售数据
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 图表区域 -->
+<div class="chart-section w">
+    <div class="section-header">
+        <h2 class="section-title">销售数据分析</h2>
+    </div>
+
+    <div class="chart-container">
+        {{ chart1|safe if chart1 else '<p style="text-align: center; color: #999; padding: 40px;">暂无销售数据图表</p>' }}
+    </div>
+</div>
+
+<!-- 页脚 -->
+<footer class="footer">
+    <div class="footer-content">
+        <div class="footer-section">
+            <h3>关于我们</h3>
+            <p>我们致力于为户外爱好者提供最优质的装备和服务，让您的户外之旅更加精彩。</p>
+        </div>
+
+        <div class="footer-section">
+            <h3>购物指南</h3>
+            <ul class="footer-links">
+                <li><a href="{{ url_for('user.index') }}">首页</a></li>
+                <li><a href="{{ url_for('user.about') }}">全部商品</a></li>
+                <li><a href="{{ url_for('user.car') }}">购物车</a></li>
+                <li><a href="{{ url_for('user.personal_center') }}">个人中心</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-section">
+            <h3>售后服务</h3>
+            <ul class="footer-links">
+                <li><a href="#">退换货政策</a></li>
+                <li><a href="#">售后保障</a></li>
+                <li><a href="#">投诉建议</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-section">
+            <h3>联系我们</h3>
+            <p>电话：400-123-4567<br>邮箱：service@outdoor.com<br>工作时间：9:00-18:00</p>
+        </div>
+    </div>
+
+    <div class="copyright">
+        <p>户外商品商城 &copy; 2024 版权所有</p>
+    </div>
+</footer>
+
+<script>
+    // 修复轮播图功能
+    document.addEventListener('DOMContentLoaded', function() {
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const dots = document.querySelectorAll('.slider-dot');
+        const totalSlides = slides.length;
+        let slideInterval;
+
+        // 显示指定索引的幻灯片
+        function showSlide(index) {
+            // 确保索引在有效范围内
+            if (index < 0) index = totalSlides - 1;
+            if (index >= totalSlides) index = 0;
+
+            // 隐藏所有幻灯片
+            slides.forEach(slide => {
+                slide.classList.remove('active');
+            });
+
+            // 隐藏所有指示点
+            dots.forEach(dot => dot.classList.remove('active'));
+
+            // 显示当前幻灯片
+            if (slides[index]) {
+                slides[index].classList.add('active');
+            }
+
+            // 激活当前指示点
+            if (dots[index]) {
+                dots[index].classList.add('active');
+            }
+
+            currentSlide = index;
+        }
+
+        // 下一张幻灯片
+        window.nextSlide = function() {
+            showSlide(currentSlide + 1);
+        }
+
+        // 上一张幻灯片
+        window.prevSlide = function() {
+            showSlide(currentSlide - 1);
+        }
+
+        // 跳转到指定幻灯片
+        window.goToSlide = function(index) {
+            showSlide(index);
+            resetTimer();
+        }
+
+        // 重置计时器
+        function resetTimer() {
+            clearInterval(slideInterval);
+            startAutoSlide();
+        }
+
+        // 开始自动轮播
+        function startAutoSlide() {
+            if (totalSlides > 1) {
+                slideInterval = setInterval(() => {
+                    nextSlide();
+                }, 5000); // 5秒切换一次
+            }
+        }
+
+        // 初始化轮播图
+        if (slides.length > 0) {
+            // 显示第一张幻灯片
+            showSlide(0);
+
+            // 开始自动轮播
+            startAutoSlide();
+
+            // 添加事件监听器
+            const prevBtn = document.querySelector('.slider-prev');
+            const nextBtn = document.querySelector('.slider-next');
+
+            if (prevBtn) {
+                prevBtn.addEventListener('click', () => {
+                    prevSlide();
+                    resetTimer();
+                });
+            }
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', () => {
+                    nextSlide();
+                    resetTimer();
+                });
+            }
+
+            // 为每个指示点添加点击事件
+            dots.forEach((dot, index) => {
+                dot.addEventListener('click', () => {
+                    goToSlide(index);
+                });
+            });
+
+            // 鼠标悬停暂停轮播
+            const slider = document.getElementById('slider');
+            if (slider) {
+                slider.addEventListener('mouseenter', () => {
+                    clearInterval(slideInterval);
+                });
+
+                slider.addEventListener('mouseleave', () => {
+                    startAutoSlide();
+                });
+            }
+
+            // 键盘导航
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowLeft') {
+                    prevSlide();
+                    resetTimer();
+                } else if (e.key === 'ArrowRight') {
+                    nextSlide();
+                    resetTimer();
+                }
+            });
+        }
+    });
+</script>
+</body>
+</html>

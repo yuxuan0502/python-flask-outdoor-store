@@ -1,0 +1,494 @@
+<!-- login.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 户外商品商城</title>
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='icons/favicon.svg') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='user/css/style.css') }}">
+    <style>
+        /* 登录注册页面特有样式 */
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23ffffff" opacity="0.03"/><circle cx="50" cy="50" r="20" fill="none" stroke="%23ffffff" stroke-width="0.5" opacity="0.1"/></svg>');
+        }
+
+        .auth-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 450px;
+            padding: 50px 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .auth-logo {
+            font-size: 36px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .auth-title {
+            font-size: 28px;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .auth-subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .auth-form {
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            outline: none;
+        }
+
+        .form-input.error {
+            border-color: #ff6b6b;
+        }
+
+        .error-message {
+            color: #ff6b6b;
+            font-size: 14px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .remember-checkbox {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .remember-label {
+            color: #666;
+            cursor: pointer;
+        }
+
+        .forgot-password {
+            color: #667eea;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .forgot-password:hover {
+            color: #5a67d8;
+        }
+
+        .auth-button {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 30px;
+        }
+
+        .auth-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .auth-button:active {
+            transform: translateY(0);
+        }
+
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            margin: 30px 0;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .auth-divider::before,
+        .auth-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #eee;
+        }
+
+        .auth-divider span {
+            padding: 0 15px;
+        }
+
+        .social-login {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .social-button {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            background: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .social-button:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .social-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .social-text {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .auth-footer {
+            text-align: center;
+            color: #666;
+            font-size: 15px;
+        }
+
+        .auth-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .auth-link:hover {
+            color: #5a67d8;
+            text-decoration: underline;
+        }
+
+        .flash-messages {
+            margin-bottom: 25px;
+        }
+
+        .flash-message {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .flash-success {
+            background: #e8f5e9;
+            color: #388e3c;
+            border-left: 4px solid #4caf50;
+        }
+
+        .flash-error {
+            background: #ffebee;
+            color: #d32f2f;
+            border-left: 4px solid #f44336;
+        }
+
+        .flash-info {
+            background: #e3f2fd;
+            color: #1976d2;
+            border-left: 4px solid #2196f3;
+        }
+
+        .flash-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 576px) {
+            .auth-card {
+                padding: 40px 25px;
+            }
+
+            .auth-title {
+                font-size: 24px;
+            }
+
+            .social-login {
+                flex-direction: column;
+            }
+
+            .form-options {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="auth-container">
+    <div class="auth-bg"></div>
+
+    <div class="auth-card">
+        <div class="auth-header">
+            <a href="{{ url_for('user.index') }}" class="auth-logo">Store</a>
+            <h1 class="auth-title">欢迎回来</h1>
+            <p class="auth-subtitle">登录您的账号，探索户外世界</p>
+        </div>
+
+        <!-- Flash消息 -->
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category if category != 'message' else 'info' }}">
+                            {% if category == 'success' %}
+                                <svg class="flash-icon" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                </svg>
+                            {% elif category == 'error' %}
+                                <svg class="flash-icon" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/>
+                                </svg>
+                            {% else %}
+                                <svg class="flash-icon" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                                </svg>
+                            {% endif %}
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <form class="auth-form" action="{{ url_for('user.login') }}" method="POST">
+            <div class="form-group">
+                <label class="form-label" for="username">用户名</label>
+                <input type="text" class="form-input" id="username" name="username" placeholder="请输入用户名" required>
+                <div class="error-message" id="usernameError"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">密码</label>
+                <input type="password" class="form-input" id="password" name="password" placeholder="请输入密码" required>
+                <div class="error-message" id="passwordError"></div>
+            </div>
+
+            <div class="form-options">
+                <label class="remember-me">
+                    <input type="checkbox" class="remember-checkbox" id="admin_login" name="admin_login">
+                    <span class="remember-label">管理员登录</span>
+                </label>
+            </div>
+
+            <button type="submit" class="auth-button">登录</button>
+        </form>
+
+<!--        <div class="auth-divider">-->
+<!--            <span>或</span>-->
+<!--        </div>-->
+
+<!--        <div class="social-login">-->
+<!--            <button type="button" class="social-button">-->
+<!--                <svg class="social-icon" viewBox="0 0 24 24" fill="#1877F2">-->
+<!--                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>-->
+<!--                </svg>-->
+<!--                <span class="social-text">Facebook</span>-->
+<!--            </button>-->
+
+<!--            <button type="button" class="social-button">-->
+<!--                <svg class="social-icon" viewBox="0 0 24 24" fill="#DB4437">-->
+<!--                    <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/>-->
+<!--                </svg>-->
+<!--                <span class="social-text">Google</span>-->
+<!--            </button>-->
+<!--        </div>-->
+
+        <div class="auth-footer">
+            <p>还没有账号？ <a href="{{ url_for('user.register') }}" class="auth-link">立即注册</a></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 自动消失提示消息
+    document.addEventListener('DOMContentLoaded', function() {
+        // 自动隐藏flash消息
+        const flashMessages = document.querySelectorAll('.flash-message');
+        flashMessages.forEach(message => {
+            setTimeout(() => {
+                message.style.transition = 'opacity 0.5s ease';
+                message.style.opacity = '0';
+                setTimeout(() => {
+                    message.remove();
+                }, 500);
+            }, 3000); // 3秒后开始消失
+        });
+
+        // 表单验证
+        const form = document.querySelector('.auth-form');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const usernameError = document.getElementById('usernameError');
+        const passwordError = document.getElementById('passwordError');
+
+        // 实时验证用户名
+        usernameInput.addEventListener('input', function() {
+            const value = this.value.trim();
+
+            if (!value) {
+                showError(usernameInput, usernameError, '用户名不能为空');
+            } else if (value.length < 3) {
+                showError(usernameInput, usernameError, '用户名至少3个字符');
+            } else if (value.length > 20) {
+                showError(usernameInput, usernameError, '用户名不能超过20个字符');
+            } else {
+                clearError(usernameInput, usernameError);
+            }
+        });
+
+        // 实时验证密码
+        passwordInput.addEventListener('input', function() {
+            const value = this.value;
+
+            if (!value) {
+                showError(passwordInput, passwordError, '密码不能为空');
+            } else if (value.length < 6) {
+                showError(passwordInput, passwordError, '密码至少6个字符');
+            } else {
+                clearError(passwordInput, passwordError);
+            }
+        });
+
+        // 提交前验证
+        form.addEventListener('submit', function(e) {
+            let isValid = true;
+
+            if (!usernameInput.value.trim()) {
+                showError(usernameInput, usernameError, '用户名不能为空');
+                isValid = false;
+            }
+
+            if (!passwordInput.value) {
+                showError(passwordInput, passwordError, '密码不能为空');
+                isValid = false;
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+                // 滚动到第一个错误的位置
+                const firstError = document.querySelector('.form-input.error');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        });
+
+        function showError(input, errorElement, message) {
+            input.classList.add('error');
+            errorElement.textContent = message;
+            errorElement.classList.add('show');
+
+            // 5秒后自动清除错误
+            setTimeout(() => {
+                clearError(input, errorElement);
+            }, 5000);
+        }
+
+        function clearError(input, errorElement) {
+            input.classList.remove('error');
+            errorElement.classList.remove('show');
+        }
+
+        // 移除社交登录按钮点击事件
+        // document.querySelectorAll('.social-button').forEach(button => {
+        //     button.addEventListener('click', function() {
+        //         const platform = this.querySelector('.social-text').textContent;
+        //         alert(`即将跳转到${platform}登录`);
+        //     });
+        // });
+    });
+</script>
+</body>
+</html>

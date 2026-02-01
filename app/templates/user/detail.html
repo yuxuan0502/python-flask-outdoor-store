@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{product.name}} - 户外商品商城</title>
+    <link rel="icon" type="image/png" sizes="16x16" href="../../static/icons/favicon.svg">
+    <link rel="stylesheet" href="{{ url_for('static', filename='navbar.css') }}">
+    <style>
+        /* 商品详情页特有样式 */
+        .product-detail {
+            padding: 40px 0;
+        }
+
+        .product-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .product-gallery {
+            position: relative;
+        }
+
+        .main-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .image-thumbnails {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .thumbnail {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 5px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .thumbnail:hover,
+        .thumbnail.active {
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+
+        .product-info {
+            padding: 20px 0;
+        }
+
+        .product-title {
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .product-brand {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .product-price {
+            font-size: 36px;
+            color: #ff6b6b;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .product-meta {
+            display: flex;
+            gap: 30px;
+            margin: 25px 0;
+            padding: 20px 0;
+            border-top: 1px solid #eee;
+        }
+
+        .meta-item {
+            text-align: center;
+        }
+
+        .meta-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .meta-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .action-buttons .btn {
+            flex: 1;
+            padding: 15px;
+            font-size: 18px;
+        }
+
+        .btn-buy {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .btn-favorite {
+            background: white;
+            color: #ff6b6b;
+            border: 2px solid #ff6b6b;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-favorite:hover {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .product-tabs {
+            margin-top: 50px;
+        }
+
+        .tab-headers {
+            display: flex;
+            margin-bottom: 30px;
+        }
+
+        .tab-header {
+            padding: 15px 30px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            color: #666;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .tab-header.active {
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .tab-header.active:after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #667eea;
+        }
+
+        .tab-content {
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .comment-section {
+            margin-top: 30px;
+        }
+
+        .comment-list {
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .comment-item {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .comment-author {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .comment-time {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .comment-content {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .comment-form {
+            margin-top: 30px;
+        }
+
+        .comment-form textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+        }
+
+        .product-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .tag {
+            padding: 5px 15px;
+            background: #f0f4ff;
+            color: #667eea;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        /* 推荐商品 */
+        .recommendations {
+            margin-top: 60px;
+        }
+
+        .recommendations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .recommendation-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+
+        .recommendation-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        .recommendation-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+
+        .recommendation-info {
+            padding: 20px;
+        }
+
+        .recommendation-name {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .recommendation-card a,
+        .recommendation-card a:hover {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .recommendation-price {
+            color: #ff6b6b;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        @media (max-width: 992px) {
+            .product-container {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+
+        /* 立即购买弹窗样式 */
+        .buy-now-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 9999;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .buy-now-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .buy-now-modal-content {
+            background: white;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 550px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .buy-now-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px 30px;
+            border-bottom: 1px solid #eee;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+        }
+
+        .buy-now-modal-header h2 {
+            font-size: 24px;
+            color: #333;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .buy-now-modal-header .close-modal {
+            background: none;
+            border: none;
+            font-size: 32px;
+            color: #999;
+            cursor: pointer;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .buy-now-modal-header .close-modal:hover {
+            color: #333;
+            transform: rotate(90deg);
+        }
+
+        .buy-now-modal-body {
+            padding: 30px;
+        }
+
+        /* 商品信息 */
+        .buy-product-info {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .buy-product-image {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .buy-product-details {
+            flex: 1;
+        }
+
+        .buy-product-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .buy-product-brand {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .buy-product-price {
+            color: #ff6b6b;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* 数量选择 */
+        .buy-quantity-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0;
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 25px;
+        }
+
+        .buy-quantity-section label {
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .buy-quantity-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .buy-quantity-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #667eea;
+            transition: all 0.3s;
+        }
+
+        .buy-quantity-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .buy-quantity-input {
+            width: 70px;
+            text-align: center;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        /* 订单摘要 */
+        .buy-order-summary {
+            background: #fafafa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .buy-summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            font-size: 15px;
+            color: #666;
+        }
+
+        .buy-summary-row.total {
+            border-top: 2px solid #eee;
+            padding-top: 15px;
+            margin-top: 10px;
+            font-weight: 600;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .buy-summary-row.total span:last-child {
+            color: #ff6b6b;
+            font-size: 26px;
+        }
+
+        /* 购买提示 */
+        .buy-tips {
+            background: #fff3e0;
+            padding: 15px 20px;
+            border-radius: 10px;
+            border-left: 4px solid #ff9800;
+        }
+
+        .buy-tips p {
+            margin: 0;
+            color: #e65100;
+            font-size: 14px;
+        }
+
+        /* 弹窗底部按钮 */
+        .buy-now-modal-footer {
+            display: flex;
+            gap: 15px;
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-radius: 0 0 20px 20px;
+            position: sticky;
+            bottom: 0;
+        }
+
+        .buy-modal-btn {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .buy-modal-btn.back-btn {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .buy-modal-btn.back-btn:hover {
+            background: #d0d0d0;
+        }
+
+        .buy-modal-btn.confirm-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+            color: white;
+        }
+
+        .buy-modal-btn.confirm-btn:hover {
+            background: linear-gradient(135deg, #ff5252 0%, #ff6b6b 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .buy-product-info {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .buy-product-image {
+                margin: 0 auto;
+            }
+
+            .buy-quantity-section {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+
+            .buy-quantity-control {
+                justify-content: center;
+            }
+
+            .buy-now-modal-footer {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- 导航栏 -->
+<header class="header">
+    <div class="w">
+        <a class="logo" href="{{ url_for('user.index') }}">
+            <span class="logo-text">Store</span>
+        </a>
+        <nav class="nav">
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('user.index') }}">首页</a>
+                </li>
+                <li class="nav-item {% if request.endpoint == 'user.car' %}active{% endif %}">
+                    <a class="nav-link" href="{{ url_for('user.car') }}">购物车</a>
+                </li>
+                <li class="nav-item {% if request.endpoint == 'user.personal_center' %}active{% endif %}">
+                    <a class="nav-link" href="{{ url_for('user.personal_center') }}">个人中心</a>
+                </li>
+                <li class="nav-item {% if request.endpoint == 'user.about' %}active{% endif %}">
+                    <a class="nav-link" href="{{ url_for('user.about') }}">全部商品</a>
+                </li>
+                <li class="nav-item search-item">
+                    <form class="search-form" action="{{ url_for('user.search') }}" method="GET">
+                        <input class="search-input-sm" type="text" name="keyword" placeholder="搜索商品..." value="{{ request.args.get('keyword', '') }}">
+                        <button class="search-btn-sm" type="submit">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </button>
+                    </form>
+                </li>
+                <li class="nav-item">
+                    {% if user %}
+                    <div class="user-info">
+                        <span class="user-name">欢迎，{{ user.name }}</span>
+                        <a href="{{ url_for('user.logout') }}" class="logout-btn">退出</a>
+                    </div>
+                    {% endif %}
+                </li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<!-- 商品详情 -->
+<div class="product-detail container">
+    <div class="product-container">
+        <!-- 商品图片 -->
+        <div class="product-gallery">
+            <img src="{{ product.photo }}" alt="{{ product.name }}" class="main-image" id="mainImage">
+            <div class="image-thumbnails">
+                <img src="{{ product.photo }}" alt="{{ product.name }}" class="thumbnail active" onclick="changeImage(this.src)">
+            </div>
+        </div>
+
+        <!-- 商品信息 -->
+        <div class="product-info">
+            <h1 class="product-title">{{ product.name }}</h1>
+            <span class="product-brand">{{ product.derive }}</span>
+
+            <div class="product-tags">
+                <span class="tag">户外装备</span>
+                <span class="tag">热销商品</span>
+                <span class="tag">质量保证</span>
+            </div>
+
+            <div class="product-price">¥{{ product.price }}</div>
+
+            <div class="product-meta">
+                <div class="meta-item">
+                    <div class="meta-value">{{ product.sales }}</div>
+                    <div class="meta-label">已售</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-value">{{ comment_count }}</div>
+                    <div class="meta-label">评价</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-value">4.8</div>
+                    <div class="meta-label">评分</div>
+                </div>
+            </div>
+
+            <div class="product-description">
+                <h3>商品描述</h3>
+                <p>这是一款优质的户外商品，专为户外运动爱好者设计。采用高质量材料制作，耐用且实用，是您户外探险的理想选择。</p>
+            </div>
+
+            <div class="action-buttons">
+                {% if user %}
+                <a href="{{ url_for('user.add_car', id=product.id) }}" class="btn btn-secondary">
+                    加入购物车
+                </a>
+                <button class="btn btn-buy" onclick="showBuyNowModal()">
+                    立即购买
+                </button>
+                <a href="{{ url_for('user.add_collection', product_id=product.id) }}" class="btn btn-favorite" onclick="addToFavorite(event, {{ product.id }})">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                    收藏
+                </a>
+                {% else %}
+                <a href="{{ url_for('user.login') }}" class="btn btn-secondary">
+                    登录后购买
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 立即购买弹窗 -->
+    <div id="buy-now-modal" class="buy-now-modal">
+        <div class="buy-now-modal-content">
+            <div class="buy-now-modal-header">
+                <h2>确认订单</h2>
+                <button class="close-modal" onclick="closeBuyNowModal()">&times;</button>
+            </div>
+
+            <div class="buy-now-modal-body">
+                <!-- 商品信息 -->
+                <div class="buy-product-info">
+                    <img src="{{ product.photo }}" alt="{{ product.name }}" class="buy-product-image">
+                    <div class="buy-product-details">
+                        <h3 class="buy-product-name">{{ product.name }}</h3>
+                        <div class="buy-product-brand">品牌：{{ product.derive }}</div>
+                        <div class="buy-product-price">¥{{ product.price }}</div>
+                    </div>
+                </div>
+
+                <!-- 数量选择 -->
+                <div class="buy-quantity-section">
+                    <label>购买数量：</label>
+                    <div class="buy-quantity-control">
+                        <button class="buy-quantity-btn" onclick="changeBuyQuantity(-1)">-</button>
+                        <input type="number" id="buy-quantity" class="buy-quantity-input" value="1" min="1" max="99" readonly>
+                        <button class="buy-quantity-btn" onclick="changeBuyQuantity(1)">+</button>
+                    </div>
+                </div>
+
+                <!-- 订单摘要 -->
+                <div class="buy-order-summary">
+                    <div class="buy-summary-row">
+                        <span>商品总价：</span>
+                        <span id="buy-subtotal">¥{{ product.price }}</span>
+                    </div>
+                    <div class="buy-summary-row">
+                        <span>运费：</span>
+                        <span>¥0.00</span>
+                    </div>
+                    <div class="buy-summary-row total">
+                        <span>应付金额：</span>
+                        <span id="buy-total">¥{{ product.price }}</span>
+                    </div>
+                </div>
+
+                <!-- 购买提示 -->
+                <div class="buy-tips">
+                    <p>💡 点击"确认付款"后将直接创建订单，请确认商品信息</p>
+                </div>
+            </div>
+
+            <div class="buy-now-modal-footer">
+                <button class="buy-modal-btn back-btn" onclick="closeBuyNowModal()">返回</button>
+                <button class="buy-modal-btn confirm-btn" onclick="confirmBuyNow()">确认付款</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 商品详情标签页 -->
+    <div class="product-tabs">
+        <div class="tab-headers">
+            <button class="tab-header active" onclick="switchTab('details')">商品详情</button>
+            <button class="tab-header" onclick="switchTab('comments')">用户评价 ({{ comment_count }})</button>
+            <button class="tab-header" onclick="switchTab('specs')">规格参数</button>
+        </div>
+
+        <div class="tab-content" id="detailsTab">
+            <h3>产品特点</h3>
+            <ul style="margin: 15px 0; padding-left: 20px;">
+                <li>高质量材料，经久耐用</li>
+                <li>人性化设计，使用舒适</li>
+                <li>适合多种户外场景</li>
+                <li>易于清洁和维护</li>
+                <li>品牌保证，质量可靠</li>
+            </ul>
+
+            <h3 style="margin-top: 20px;">使用场景</h3>
+            <p>适用于徒步旅行、露营、登山、野餐等多种户外活动场景。</p>
+        </div>
+
+        <div class="tab-content" id="commentsTab" style="display: none;">
+            <div class="comment-section">
+                <h3>用户评价</h3>
+
+                {% if comment_count > 0 %}
+                <div class="comment-list">
+                    {% for comment in comments %}
+                    <div class="comment-item">
+                        <div class="comment-header">
+                            <span class="comment-author">{{ comment.name }}</span>
+                            <span class="comment-time">2024-01-15</span>
+                        </div>
+                        <div class="comment-content">
+                            {{ comment.comment.comment }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="text-align: center; color: #999; padding: 40px 0;">暂无评价，快来发表您的看法吧~</p>
+                {% endif %}
+
+                {% if session.get('user_id') %}
+                <div class="comment-form">
+                    <h3>发表评价</h3>
+                    <form action="{{ url_for('user.add_comment', id=product.id) }}" method="post">
+                        <textarea name="comment" placeholder="请输入您的评价..." required></textarea>
+                        <button type="submit" class="btn" style="margin-top: 15px;">提交评价</button>
+                    </form>
+                </div>
+                {% else %}
+                <p style="text-align: center; margin-top: 30px;">
+                    请<a href="{{ url_for('user.login') }}" style="color: #667eea;">登录</a>后发表评论
+                </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="tab-content" id="specsTab" style="display: none;">
+            <h3>规格参数</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px 0; color: #666;">品牌</td>
+                    <td style="padding: 12px 0; font-weight: 500;">{{ product.derive }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px 0; color: #666;">材质</td>
+                    <td style="padding: 12px 0; font-weight: 500;">高强度防水面料</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px 0; color: #666;">尺寸</td>
+                    <td style="padding: 12px 0; font-weight: 500;">标准尺寸</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px 0; color: #666;">重量</td>
+                    <td style="padding: 12px 0; font-weight: 500;">约1.2kg</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px 0; color: #666;">适用场景</td>
+                    <td style="padding: 12px 0; font-weight: 500;">登山、徒步、露营等户外活动</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- 在 detail.html 中找到推荐商品部分，修改为： -->
+<div class="recommendations">
+    <h2 class="section-title" style="font-size: 24px; border-bottom: none; text-align: center; margin-bottom: 30px;">
+        猜你喜欢
+    </h2>
+    <div class="recommendations-grid">
+        {% if random_products %}
+            {% for rec_product in random_products %}
+            <div class="recommendation-card">
+                <a href="{{ url_for('user.detail', id=rec_product.id) }}">
+                    <img src="{{ rec_product.photo }}" alt="{{ rec_product.name }}" class="recommendation-image">
+                    <div class="recommendation-info">
+                        <h3 class="recommendation-name">{{ rec_product.name }}</h3>
+                        <div class="recommendation-price">¥{{ rec_product.price }}</div>
+                        <div style="font-size: 12px; color: #999; margin-top: 8px;">品牌：{{ rec_product.derive }}</div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        {% else %}
+            <!-- 如果没有推荐商品，显示提示信息 -->
+            <div style="text-align: center; grid-column: 1 / -1; padding: 40px; color: #999;">
+                暂无相关推荐商品
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 页脚 -->
+<footer class="footer">
+    <div class="footer-content">
+        <div class="footer-section">
+            <h3>关于我们</h3>
+            <p style="color: #ddd; line-height: 1.8; margin-top: 15px;">
+                我们致力于为户外爱好者提供最优质的装备和服务，让您的户外之旅更加精彩。
+            </p>
+        </div>
+
+        <div class="footer-section">
+            <h3>快速链接</h3>
+            <ul class="footer-links">
+                <li><a href="{{ url_for('user.index') }}">首页</a></li>
+                <li><a href="{{ url_for('user.about') }}">全部商品</a></li>
+                <li><a href="{{ url_for('user.car') }}">购物车</a></li>
+                <li><a href="{{ url_for('user.personal_center') }}">个人中心</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-section">
+            <h3>联系我们</h3>
+            <p style="color: #ddd; line-height: 1.8; margin-top: 15px;">
+                电话：400-123-4567<br>
+                邮箱：service@outdoor.com<br>
+                地址：北京市朝阳区户外大厦
+            </p>
+        </div>
+    </div>
+
+    <div class="copyright">
+        <p>户外商品商城 &copy; 2024 版权所有</p>
+    </div>
+</footer>
+
+<script>
+    // 页面加载时记录浏览历史
+    document.addEventListener('DOMContentLoaded', function() {
+        // 异步记录浏览历史，不阻塞页面加载
+        {% if user %}
+        fetch('/record_browse/{{ product.id }}', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            }
+        }).catch(error => {
+            // 静默处理错误，不影响用户体验
+            console.log('浏览历史记录失败:', error);
+        });
+        {% endif %}
+    });
+
+    // 切换标签页
+    function switchTab(tabName) {
+        // 隐藏所有标签内容
+        document.getElementById('detailsTab').style.display = 'none';
+        document.getElementById('commentsTab').style.display = 'none';
+        document.getElementById('specsTab').style.display = 'none';
+
+        // 移除所有标签的激活状态
+        const tabHeaders = document.querySelectorAll('.tab-header');
+        tabHeaders.forEach(header => header.classList.remove('active'));
+
+        // 显示选中的标签内容
+        document.getElementById(tabName + 'Tab').style.display = 'block';
+
+        // 激活选中的标签头
+        event.target.classList.add('active');
+    }
+
+    // 切换图片
+    function changeImage(src) {
+        document.getElementById('mainImage').src = src;
+
+        // 更新缩略图激活状态
+        const thumbnails = document.querySelectorAll('.thumbnail');
+        thumbnails.forEach(thumb => thumb.classList.remove('active'));
+        event.target.classList.add('active');
+    }
+
+    // 默认显示详情标签
+    document.addEventListener('DOMContentLoaded', function() {
+        switchTab('details');
+    });
+
+    // 添加收藏
+    function addToFavorite(event, productId) {
+        event.preventDefault();
+        fetch('/add_collection/' + productId + '?ajax=1', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message || '收藏成功！');
+            } else {
+                alert(data.message || '收藏失败');
+            }
+        })
+        .catch(error => {
+            alert('收藏失败，请稍后重试');
+        });
+    }
+
+    // ========== 立即购买功能 ==========
+    const productPrice = {{ product.price }};
+    const productId = {{ product.id }};
+
+    // 显示立即购买弹窗
+    function showBuyNowModal() {
+        const modal = document.getElementById('buy-now-modal');
+        if (modal) {
+            // 重置数量为1
+            document.getElementById('buy-quantity').value = 1;
+            updateBuyTotal();
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden'; // 防止背景滚动
+        }
+    }
+
+    // 关闭立即购买弹窗
+    function closeBuyNowModal() {
+        const modal = document.getElementById('buy-now-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = ''; // 恢复滚动
+        }
+    }
+
+    // 修改购买数量
+    function changeBuyQuantity(delta) {
+        const input = document.getElementById('buy-quantity');
+        let newValue = parseInt(input.value) + delta;
+        if (newValue < 1) newValue = 1;
+        if (newValue > 99) newValue = 99;
+        input.value = newValue;
+        updateBuyTotal();
+    }
+
+    // 更新总价
+    function updateBuyTotal() {
+        const quantity = parseInt(document.getElementById('buy-quantity').value);
+        const total = productPrice * quantity;
+        const formattedTotal = `¥${total.toFixed(2)}`;
+        document.getElementById('buy-subtotal').textContent = formattedTotal;
+        document.getElementById('buy-total').textContent = formattedTotal;
+    }
+
+    // 确认立即购买
+    function confirmBuyNow() {
+        const quantity = parseInt(document.getElementById('buy-quantity').value);
+        const confirmBtn = document.querySelector('.buy-modal-btn.confirm-btn');
+        const originalText = confirmBtn.textContent;
+        confirmBtn.textContent = '处理中...';
+        confirmBtn.disabled = true;
+
+        // 创建立即购买订单
+        fetch('/buy_now', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                product_id: productId,
+                quantity: quantity
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                closeBuyNowModal();
+                alert('购买成功！感谢您的购买');
+                window.location.href = '/personal_center';
+            } else {
+                alert(data.message || '购买失败');
+                confirmBtn.textContent = originalText;
+                confirmBtn.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('购买失败:', error);
+            alert('购买失败，请稍后重试');
+            confirmBtn.textContent = originalText;
+            confirmBtn.disabled = false;
+        });
+    }
+
+    // 点击弹窗背景关闭
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('buy-now-modal');
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeBuyNowModal();
+                }
+            });
+        }
+    });
+</script>
+</body>
+</html>

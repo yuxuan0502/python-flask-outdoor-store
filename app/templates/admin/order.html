@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>后台-订单管理</title>
+    <link rel="icon" type="image/png" sizes="16x16" href="../../static/icons/favicon.svg">
+    <script src="../../static/jQuery.js"></script>
+    <link rel="stylesheet" href="../../static/admin/css/nav.css">
+    <link rel="stylesheet" href="../../static/admin/css/item.css">
+    <link rel="stylesheet" href="../../static/admin/css/order.css">
+
+    <script src="../../static/admin/js/nav.js"></script>
+
+</head>
+<body>
+<div class="tz_content">
+    <!--左侧导航栏 start-->
+    <div class="t_left">
+        <div class="l_logo"></div>
+        <div class="l_nav">
+            <ul>
+                <li>
+                    <a href="{{ url_for('admin.index') }}">
+                        <img src="../../static/icons/home(white).svg"
+                             style="width: 20px;height:20px;vertical-align: text-bottom;">
+                        <span>首页</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('admin.item_view') }}">
+                        <img src="../../static/icons/item_list.svg"
+                             style="width: 20px;height:20px;vertical-align: text-bottom;">
+                        <span>商品列表</span>
+                    </a>
+                </li>
+
+                <li class="active">
+                    <a href="{{ url_for('admin.order_view') }}">
+                        <img src="../../static/icons/order_list.svg" style="width: 20px;height:20px;vertical-align: text-bottom;">
+                        <span>订单列表</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('admin.user_view') }}">
+                        <img src="../../static/icons/user_list.svg" style="width: 20px;height:20px;vertical-align: text-bottom;">
+                        <span>用户列表</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <!--左侧导航栏 end-->
+
+    <!--头部导航栏 start-->
+    <div class="t_header">
+        <!--h_nav start-->
+        <div class="h_nav">
+            <h2>户外商城后台管理</h2>
+        </div>
+        <!--end h_nav-->
+
+        <!--h_info start-->
+        <div class="h_info">
+            <div class="h_user">当前用户：
+                {% if admin %}
+                <a href="javascript:;" class="logout h_out">
+                    {{ admin.name }}
+                </a>
+                {% endif %}
+            </div>
+            <div class="h_user">
+                <a href="{{ url_for('user.index') }}" class="frontend-btn">
+                    返回前台
+                </a>
+            </div>
+        </div>
+        <!--end h_info-->
+
+    </div>
+    <!--头部导航栏 end -->
+
+    <!--内容区域 start-->
+    <div class="t_right">
+        <div class="r_location">
+            <i></i>
+            <p>您当前所在位置：首页 > 订单管理</p>
+        </div>
+
+        <div class="items">
+        <div class="search">
+<!--            <a href="javascript:;"><span class="add-btn">添加商品</span></a>-->
+            <a href="javascript:;"><span class="clear-btn">清空搜索</span></a>
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            {% for message in messages %}
+            <span style="color: red">提示：{{ message }}</span>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+            <div class="search-input-wrapper">
+                <input type="text" class="search-ipt" placeholder="输入商品名称或用户名">
+                <img class="search-icon" style="width: 20px;height: 20px;" src="../../static/icons/search.svg">
+            </div>
+        </div>
+
+        <ul class="list">
+            {% for user in users %}
+            <span class="user"><span class="s">用户</span>&nbsp;&nbsp;{{user.name}}&nbsp;&nbsp;<span class="s">的订单</span></span>
+            {% for order_data in orders %}
+            {% if user.id == order_data.order.user_id %}
+            <li data-product_id="{{order_data.order.product_id}}" data-order_id='{{ order_data.order.item_id }}'>
+                <span class="product_name">{{order_data.product.name}}</span>
+                <span class="product_brand">品牌：{{order_data.product.derive}}</span>
+                <span class="product_price">价格：¥{{order_data.product.price}}</span>
+                <span class="number">数量：{{order_data.order.number}}</span>
+                <span class="is_pay">{% if order_data.order.is_pay == 1 %}已支付{% else %}未支付{% endif %}</span>
+<!--                <a href="javascript:;" class="delete-btn">删除</a>-->
+                <a href="javascript:;" class="detail-btn">详情</a>
+            </li>
+            {% endif %}
+            {% endfor %}
+            {% endfor %}
+        </ul>
+
+    </div>
+    <!--内容区域 end-->
+
+</div>
+
+<!--详情商品对话框-->
+<div class="mask2" style="display: none" data-product="">
+    <!--    <div class="upd-item">-->
+    <div class="detail-item">
+        <h3 style="margin-bottom: 10px">订单详情</h3>
+        <div class="user_name"></div>
+
+        <div class="product_name"></div>
+        <div class="product_brand"></div>
+        <div class="product_price"></div>
+        <div class="item_number"></div>
+        <div class="is_pay"></div>
+        <button type="button" class="det-n" style="width: 100%;height: 44px;border: none;border-radius: 8px;background: #e4e7ed;color: #606266;font-size: 15px;font-weight: 500;cursor: pointer;transition: all 0.3s ease;margin-top: 12px;">取消</button>
+    </div>
+    <!--    </div>-->
+</div>
+<!--详情商品对话框-->
+
+<script src="../../static/admin/js/order.js"></script>
+</body>
+</html>
+
+
+
+

@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>后台-商品管理</title>
+    <link rel="icon" type="image/png" sizes="16x16" href="../../static/icons/favicon.svg">
+    <script src="../../static/jQuery.js"></script>
+    <link rel="stylesheet" href="../../static/page.css">
+    <link rel="stylesheet" href="../../static/admin/css/nav.css">
+    <link rel="stylesheet" href="../../static/admin/css/item.css">
+    <script src="../../static/admin/js/nav.js"></script>
+</head>
+<body>
+<div class="tz_content">
+    <!--左侧导航栏 start-->
+    <div class="t_left">
+        <div class="l_logo"></div>
+        <div class="l_nav">
+            <ul>
+                <li>
+                    <a href="{{ url_for('admin.index') }}">
+                        <img src="../../static/icons/home(white).svg"
+                             style="width: 20px;height:20px;vertical-align: text-bottom;">
+                        <span>首页</span>
+                    </a>
+                </li>
+                <li class="active">
+                    <a href="{{ url_for('admin.item_view') }}">
+                        <img src="../../static/icons/item_list.svg"
+                             style="width: 20px;height:20px;vertical-align: text-bottom;">
+                        <span>商品列表</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{{ url_for('admin.order_view') }}">
+                        <img src="../../static/icons/order_list.svg"
+                             style="width: 20px;height:20px;vertical-align: text-bottom;">
+                        <span>订单列表</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('admin.user_view') }}">
+                        <img src="../../static/icons/user_list.svg"
+                             style="width: 20px;height:20px;vertical-align: text-bottom;">
+                        <span>用户列表</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <!--左侧导航栏 end-->
+
+    <!--头部导航栏 start-->
+    <div class="t_header">
+        <!--h_nav start-->
+        <div class="h_nav">
+            <h2>户外商城后台管理</h2>
+        </div>
+        <!--end h_nav-->
+
+        <!--h_info start-->
+        <div class="h_info">
+            <div class="h_user">当前用户：
+                {% if admin %}
+                <a href="javascript:;" class="logout h_out">
+                    {{ admin.name }}
+                </a>
+                {% endif %}
+            </div>
+            <div class="h_user">
+                <a href="{{ url_for('user.index') }}" class="frontend-btn">
+                    返回前台
+                </a>
+            </div>
+        </div>
+        <!--end h_info-->
+
+    </div>
+    <!--头部导航栏 end -->
+
+    <!--内容区域 start-->
+    <div class="t_right">
+        <div class="r_location">
+            <i></i>
+            <p>您当前所在位置：首页 > 商品管理</p>
+        </div>
+
+        <div class="items">
+        <div class="search">
+            <div class="search-actions">
+                <a href="javascript:;"><span class="add-btn">添加商品</span></a>
+                <a href="javascript:;"><span class="clear-btn">清空搜索</span></a>
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                {% for message in messages %}
+                <span class="flash-msg" style="color: #f56c6c;">提示：{{ message }}</span>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+            </div>
+            <div class="search-input-wrapper">
+                <input type="text" class="search-ipt" placeholder="输入商品名称">
+                <img class="search-icon" style="width: 20px;height: 20px;" src="../../static/icons/search.svg">
+            </div>
+        </div>
+
+        <ul class="list">
+            {% for product in products %}
+            {% set comment_count = product.comments|length %}
+            <li data-product_id="{{product.id}}" data-category="{{product.category}}">
+                <span class="product_name">{{product.name}}</span><span
+                    class="product_brand">品牌：{{product.derive}}</span>
+                <span class="product_price">价格：¥{{product.price}}</span>
+                <span class="product_category">分类：{{product.category}}</span>
+                <span class="product_sales">销量：{{product.sales}}</span>
+                <a href="javascript:;" class="comment-btn" onclick="showComments({{product.id}})">评价({{comment_count}})</a>
+                <a href="javascript:;" class="delete-btn">删除</a>
+                <a href="javascript:;" class="edit-btn">修改</a>
+            </li>
+            {% endfor %}
+            <div class="pagination">
+                <!-- 左侧箭头 -->
+                {% if page.has_prev %}
+                <a href="{{ url_for('admin.item_view', page=page.prev_num) }}" class="pagination-arrow" id="prev-page"
+                   aria-label="Previous Page"><</a>
+                {% else %}
+                <a href="javascript:;" class="pagination-arrow" aria-label="Previous Page"><</a>
+                {% endif %}
+                {% for p in page.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                {% if p %}
+                {% if p == page.page %}
+                <a href="{{ url_for('admin.item_view', page=p) }}" class="current-page">{{ p }}</a>
+                {% else %}
+                <a href="{{ url_for('admin.item_view', page=p) }}">{{ p }}</a>
+                {% endif %}
+                {% else %}
+                <span class="ellipsis">...</span>
+                {% endif %}
+                {% endfor %}
+                <!-- 右侧箭头 -->
+                {% if page.has_next %}
+                <a href="{{ url_for('admin.item_view', page=page.next_num) }}" class="pagination-arrow"
+                   id="next-page" aria-label="Next Page">></a>
+                {% else %}
+                <a href="javascript:;" class="pagination-arrow"
+                   aria-label="Next Page">></a>
+                {% endif %}
+            </div>
+
+        </ul>
+
+    </div>
+    <!--内容区域 end-->
+
+</div>
+<!--删除对话框-->
+<div id="customConfirm" class="dialog-del" style="display: none">
+    <p>确定要删除吗?</p>
+    <a class="y" href="javascript:;">确定</a>
+    <a class="n" href="javascript:;">取消</a>
+</div>
+<!--删除对话框-->
+
+<!--添加商品对话框-->
+<div class="mask" style="display: none">
+    <form action="{{ url_for('admin.add_product') }}" method="post" class="add-item" enctype="multipart/form-data">
+        <h3 style="margin-bottom: 10px">添加商品</h3>
+        <input type="text" name="name" placeholder="输入商品名称" required><br>
+        <input type="text" name="derive" placeholder="输入品牌" required><br>
+        <input type="text" name="price" placeholder="输入商品价格" required><br>
+        <select name="category" class="category-select" required>
+            <option value="">选择分类</option>
+            <option value="户外服装">户外服装</option>
+            <option value="户外装备">户外装备</option>
+            <option value="户外工具">户外工具</option>
+        </select><br>
+        <input type="text" name="photo" placeholder="输入商品图片URL"><br>
+        <p style="margin-bottom: 10px;font-size: 14px">或选择图片文件</p>
+        <input type="file" id="imageUpload" name="photo_file" accept="image/*" class="add-img">
+        <a href="javascript:;" class="add-y"><input type="submit" value="确认"></a>
+        <a href="javascript:;" class="add-n"><input type="button" value="取消"></a>
+    </form>
+</div>
+<!--添加商品对话框-->
+
+<!--修改商品对话框-->
+<div class="mask2" style="display: none">
+    <!--    <div class="upd-item">-->
+    <form action="{{ url_for('admin.edit_product', product_id=0) }}" method="post" class="upd-item" enctype="multipart/form-data" id="editForm">
+        <h3 style="margin-bottom: 10px">修改商品</h3>
+        <input type="text" name="product_id" id="edit_product_id" style="display: none">
+        <input type="text" name="name" id="edit_name" placeholder="输入商品名称"><br>
+        <input type="text" name="derive" id="edit_derive" placeholder="输入品牌"><br>
+        <input type="text" name="price" id="edit_price" placeholder="输入商品价格"><br>
+        <select name="category" id="edit_category" class="category-select" required>
+            <option value="">选择分类</option>
+            <option value="户外服装">户外服装</option>
+            <option value="户外装备">户外装备</option>
+            <option value="户外工具">户外工具</option>
+        </select><br>
+        <input type="text" name="photo" id="edit_photo" placeholder="输入商品图片URL"><br>
+        <p style="margin-bottom: 10px;font-size: 14px">或选择图片文件</p>
+        <input type="file" id="imageUpdate" name="photo_file" accept="image/*" class="upd-img">
+        <a href="javascript:;" class="upd-y"><input type="submit" value="确认"></a>
+        <a href="javascript:;" class="upd-n"><input type="button" value="取消"></a>
+    </form>
+    <!--    </div>-->
+</div>
+<!--修改商品对话框-->
+
+<!--评论对话框-->
+<div class="mask3" style="display: none">
+    <div class="comment-dialog">
+        <h3 style="margin-bottom: 20px; text-align: center; font-size: 20px; font-weight: 600;">商品评价</h3>
+        <div id="commentList" style="max-height: 400px; overflow-y: auto; margin-bottom: 20px;">
+            <!-- 评论将通过JS动态加载 -->
+        </div>
+        <button type="button" class="det-n" onclick="closeCommentDialog()" style="width: 100%;height: 44px;border: none;border-radius: 8px;background: #e4e7ed;color: #606266;font-size: 15px;font-weight: 500;cursor: pointer;transition: all 0.3s ease;">关闭</button>
+    </div>
+</div>
+<!--评论对话框-->
+
+<script src="../../static/admin/js/item.js"></script>
+</body>
+</html>
+
+
+
+

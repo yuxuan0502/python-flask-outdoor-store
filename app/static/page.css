@@ -1,0 +1,163 @@
+/* ==================== 美化版分页样式 ==================== */
+
+/* 翻页容器 */
+.pagination-container {
+    margin: 50px 0;
+    text-align: center;
+}
+
+.pagination {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 8px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+    border-radius: 20px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    position: relative;
+}
+
+/* 分页链接 */
+.pagination a,
+.pagination span {
+    min-width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    color: #5a6c7d;
+    border: 2px solid transparent;
+    background: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.pagination a::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(102, 126, 234, 0.15);
+    transform: translate(-50%, -50%);
+    transition: all 0.4s ease;
+}
+
+.pagination a:hover::before {
+    width: 100%;
+    height: 100%;
+}
+
+.pagination a:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    border-color: transparent;
+}
+
+/* 当前页 */
+.pagination .current-page {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: 700;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.45);
+    transform: scale(1.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    animation: pulse-current 2s ease-in-out infinite;
+}
+
+@keyframes pulse-current {
+    0%, 100% {
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.45);
+    }
+    50% {
+        box-shadow: 0 8px 30px rgba(102, 126, 234, 0.65);
+    }
+}
+
+/* 省略号 */
+.pagination .ellipsis {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 2px;
+}
+
+/* 箭头按钮 */
+.pagination .pagination-arrow {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    color: #667eea;
+    border: 2px solid #cbd5e1;
+    font-size: 18px;
+    position: relative;
+}
+
+.pagination .pagination-arrow::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.pagination .pagination-arrow:hover::after {
+    opacity: 1;
+}
+
+.pagination .pagination-arrow:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: transparent;
+    transform: translateY(-4px) scale(1.1);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+}
+
+.pagination .pagination-arrow.disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    color: #cbd5e1;
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+}
+
+.pagination .pagination-arrow.disabled:hover {
+    background: #f1f5f9;
+    color: #cbd5e1;
+    border-color: #e2e8f0;
+    transform: none;
+    box-shadow: none;
+}
+
+/* 响应式 */
+@media (max-width: 576px) {
+    .pagination {
+        padding: 6px;
+        gap: 6px;
+        border-radius: 16px;
+    }
+
+    .pagination a,
+    .pagination span {
+        min-width: 36px;
+        height: 36px;
+        font-size: 14px;
+        border-radius: 10px;
+    }
+
+    .pagination .current-page {
+        transform: scale(1.05);
+    }
+}
